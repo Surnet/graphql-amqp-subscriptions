@@ -1,8 +1,7 @@
 {
   "name": "graphql-amqp-subscriptions",
   "description": "GraphQL AMQP Subscriptions",
-  "version": "1.0.0",
-  "private": true,
+  "version": "0.0.1",
   "author": "https://github.com/Surnet/graphql-amqp-subscriptions/graphs/contributors",
   "license": "LicenseRef-LICENSE",
   "homepage": "https://github.com/Surnet/graphql-amqp-subscriptions",
@@ -26,7 +25,8 @@
     "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
     "vulnerabilities": "npm audit",
     "check-updates": "npm outdated",
-    "lint": "eslint \"src/**/*.js\""
+    "lint": "eslint \"src/**/*.js\"",
+    "release": "release-it"
   },
   "dependencies": {
     "debug": "4.1.1",
@@ -46,6 +46,7 @@
     "eslint": "5.11.1",
     "graphql": "14.0.2",
     "nodemon": "1.18.9",
+    "release-it": "10.1.0",
     "tslint": "5.12.0",
     "typescript": "3.2.2"
   },
