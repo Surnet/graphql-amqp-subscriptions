@@ -1,11 +1,13 @@
 import amqp from 'amqplib';
+import Debug from 'debug';
 
 export class AMQPPublisher {
 
   private channel: amqp.Channel | null = null;
 
   constructor(
-    private connection: amqp.Connection
+    private connection: amqp.Connection,
+    private logger: Debug.IDebugger
   ) {
 
   }
@@ -19,8 +21,10 @@ export class AMQPPublisher {
     }
     return promise
     .then(async ch => {
+      this.channel = ch;
       return ch.assertExchange(exchange, 'topic', { durable: false, autoDelete: true })
       .then(() => {
+        this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', exchange, routingKey, data);
         ch.publish(exchange, routingKey, Buffer.from(JSON.stringify(data)));
         return Promise.resolve();
       })

@@ -35,7 +35,7 @@ export class AMQPPubSub implements PubSubEngine {
     this.currentSubscriptionId = 0;
 
     // Initialize AMQP Helper
-    this.publisher = new AMQPPublisher(this.connection);
+    this.publisher = new AMQPPublisher(this.connection, logger);
     this.subscriber = new AMQPSubscriber(this.connection, logger);
 
     logger('Finished initializing');
@@ -46,7 +46,7 @@ export class AMQPPubSub implements PubSubEngine {
     return this.publisher.publish(this.exchange, routingKey, payload);
   }
 
-  public async subscribe(routingKey: string, onMessage: Function): Promise<number> {
+  public async subscribe(routingKey: string, onMessage: (message: any) => void): Promise<number> {
     const id = this.currentSubscriptionId++;
     this.subscriptionMap[id] = {
       routingKey: routingKey,
@@ -65,13 +65,16 @@ export class AMQPPubSub implements PubSubEngine {
           ...(this.subsRefsMap[routingKey] || []),
           id,
         ];
+        if (this.unsubscribeMap[routingKey]) {
+          return disposer();
+        }
         this.unsubscribeMap[routingKey] = disposer;
         return Promise.resolve(id);
       });
     }
   }
 
-  public unsubscribe(subId: number): void {
+  public unsubscribe(subId: number): Promise<void> {
     const routingKey = this.subscriptionMap[subId].routingKey;
     const refs = this.subsRefsMap[routingKey];
 
@@ -80,7 +83,8 @@ export class AMQPPubSub implements PubSubEngine {
     }
 
     if (refs.length === 1) {
-      this.unsubscribeForKey(routingKey);
+      delete this.subscriptionMap[subId];
+      return this.unsubscribeForKey(routingKey);
     } else {
       const index = refs.indexOf(subId);
       const newRefs =
@@ -88,15 +92,16 @@ export class AMQPPubSub implements PubSubEngine {
           ? refs
           : [...refs.slice(0, index), ...refs.slice(index + 1)];
       this.subsRefsMap[routingKey] = newRefs;
+      delete this.subscriptionMap[subId];
     }
-    delete this.subscriptionMap[subId];
+    return Promise.resolve();
   }
 
   public asyncIterator<T>(triggers: string | string[]): AsyncIterator<T> {
     return new PubSubAsyncIterator<T>(this, triggers);
   }
 
-  private onMessage(routingKey: string, message: string): void {
+  private onMessage(routingKey: string, message: any): void {
     const subscribers = this.subsRefsMap[routingKey];
 
     // Don't work for nothing..
@@ -110,12 +115,10 @@ export class AMQPPubSub implements PubSubEngine {
     }
   }
 
-  private unsubscribeForKey(routingKey: string): void {
-    this.unsubscribeMap[routingKey]()
-    .then(() => {
-      delete this.subsRefsMap[routingKey];
-      delete this.unsubscribeMap[routingKey];
-    });
+  private async unsubscribeForKey(routingKey: string): Promise<void> {
+    await this.unsubscribeMap[routingKey]();
+    delete this.subsRefsMap[routingKey];
+    delete this.unsubscribeMap[routingKey];
   }
 
 }

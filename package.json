@@ -36,7 +36,7 @@
     "vulnerabilities": "npm audit",
     "check-updates": "npm outdated",
     "lint": "tslint \"src/**/*.ts\"",
-    "test": "",
+    "test": "nyc mocha",
     "release": "release-it"
   },
   "dependencies": {
@@ -52,12 +52,18 @@
     "@babel/preset-env": "7.2.3",
     "@babel/preset-typescript": "7.1.0",
     "@types/amqplib": "0.5.9",
+    "@types/chai": "4.1.7",
     "@types/debug": "0.0.31",
+    "@types/mocha": "5.2.6",
     "amqplib": "0.5.3",
+    "chai": "4.2.0",
     "eslint": "5.11.1",
     "graphql": "14.0.2",
+    "mocha": "5.2.0",
     "nodemon": "1.18.9",
+    "nyc": "13.3.0",
     "release-it": "10.1.0",
+    "ts-node": "8.0.2",
     "tslint": "5.12.0",
     "typescript": "3.2.2"
   },

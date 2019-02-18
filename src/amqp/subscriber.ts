@@ -1,7 +1,7 @@
 import amqp from 'amqplib';
 import Debug from 'debug';
 
-import { convertMessage } from './common';
+import { Logger } from './common';
 
 export class AMQPSubscriber {
 
@@ -28,6 +28,7 @@ export class AMQPSubscriber {
     }
     return promise
     .then(async ch => {
+      this.channel = ch;
       return ch.assertExchange(exchange, 'topic', { durable: false, autoDelete: true })
       .then(() => {
         return ch.assertQueue('', { exclusive: true, durable: false, autoDelete: true });
@@ -40,7 +41,7 @@ export class AMQPSubscriber {
       })
       .then(async queue => {
         return ch.consume(queue.queue, (msg) => {
-          let parsedMessage = convertMessage(msg);
+          let parsedMessage = Logger.convertMessage(msg);
           this.logger('Message arrived from Queue "%s" (%j)', queue.queue, parsedMessage);
           action(routingKey, parsedMessage);
         }, {noAck: true})
