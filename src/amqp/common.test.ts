@@ -58,7 +58,7 @@ describe('Common', () => {
         appId: undefined,
         clusterId: undefined
       },
-      content: new Buffer('{"test":"data"}')
+      content: Buffer.from('{"test":"data"}')
     });
     expect(message).to.exist;
     expect(message.test).to.equal('data');
