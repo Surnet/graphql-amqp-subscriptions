@@ -28,7 +28,7 @@ describe('Common', () => {
         appId: undefined,
         clusterId: undefined
       },
-      content: new Buffer('test')
+      content: Buffer.from('test')
     });
     expect(message).to.exist;
     expect(message).to.equal('test');
