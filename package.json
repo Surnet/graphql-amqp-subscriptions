@@ -1,9 +1,9 @@
 {
   "name": "graphql-amqp-subscriptions",
   "description": "GraphQL AMQP Subscriptions",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "https://github.com/Surnet/graphql-amqp-subscriptions/graphs/contributors",
-  "license": "LicenseRef-LICENSE",
+  "license": "MIT",
   "homepage": "https://github.com/Surnet/graphql-amqp-subscriptions",
   "bugs": {
     "url": "https://github.com/Surnet/graphql-amqp-subscriptions/issues"
@@ -13,9 +13,9 @@
     "url": "https://github.com/Surnet/graphql-amqp-subscriptions.git"
   },
   "engines": {
-    "node": "8.11.2"
+    "node": "10.15.1"
   },
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "start": "nodemon --ext js,ts,tsx,json --exec babel-node -- src/index.ts --extensions \".ts,.tsx\" --source-maps inline",
     "type-check": "tsc --noEmit",
