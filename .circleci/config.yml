@@ -1,0 +1,33 @@
+# Docs https://circleci.com/docs/2.0/language-javascript/
+version: 2
+jobs:
+  build:
+    working_directory: ~/repo
+
+    # List of images https://circleci.com/docs/2.0/circleci-images/
+    docker:
+      - image: circleci/node:10.15.1
+      - image: circleci/rabbitmq:3.7.7
+
+    steps:
+      - checkout
+      # Update npm
+      - run:
+          name: Update npm
+          command: 'sudo npm install -g npm@latest'
+      # Download and cache dependencies
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      # Install dependencies
+      - run:
+          name: Install dependencies
+          command: npm install
+      # Save cache
+      - save_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      # Run tests
+      - run:
+          name: Run tests
+          command: npm test

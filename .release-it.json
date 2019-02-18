@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "beforeStart": "npm install && npm run build"
+  },
+  "git": {
+    "requireCleanWorkingDir": false,
+    "requireUpstream": true,
+    "addUntrackedFiles": false,
+    "commit": true,
+    "commitMessage": "[ci skip] Release %s"
+  },
+  "github": {
+    "release": true
+  }
+}

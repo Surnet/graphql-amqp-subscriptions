@@ -15,6 +15,16 @@
   "engines": {
     "node": "10.15.1"
   },
+  "keywords": [
+    "graphql",
+    "subscription",
+    "api",
+    "push",
+    "pull",
+    "amqp",
+    "rabbitmq",
+    "rabbit"
+  ],
   "main": "lib/index.js",
   "scripts": {
     "start": "nodemon --ext js,ts,tsx,json --exec babel-node -- src/index.ts --extensions \".ts,.tsx\" --source-maps inline",
@@ -25,7 +35,8 @@
     "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
     "vulnerabilities": "npm audit",
     "check-updates": "npm outdated",
-    "lint": "eslint \"src/**/*.js\"",
+    "lint": "tslint \"src/**/*.ts\"",
+    "test": "",
     "release": "release-it"
   },
   "dependencies": {
