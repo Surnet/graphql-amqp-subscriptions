@@ -8,7 +8,7 @@ workflows:
       - test
 
 jobs:
-  build:
+  test:
     working_directory: ~/repo
 
     # List of images https://circleci.com/docs/2.0/circleci-images/
