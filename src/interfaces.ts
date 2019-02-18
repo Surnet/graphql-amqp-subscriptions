@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import amqp from 'amqplib';
 
 export interface PubSubAMQPOptions {
