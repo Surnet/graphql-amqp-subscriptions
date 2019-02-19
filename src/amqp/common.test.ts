@@ -1,3 +1,4 @@
+/* tslint:disable:no-unused-expression */
 import { Logger } from './common';
 import { expect } from 'chai';
 import 'mocha';
@@ -5,7 +6,7 @@ import 'mocha';
 describe('Common', () => {
 
   it('should convert a string to a string', () => {
-    var message = Logger.convertMessage({
+    const message = Logger.convertMessage({
       fields: {
         deliveryTag: 1,
         redelivered: false,
@@ -35,7 +36,7 @@ describe('Common', () => {
   });
 
   it('should convert a stringified JSON to a JSON', () => {
-    var message = Logger.convertMessage({
+    const message = Logger.convertMessage({
       fields: {
         deliveryTag: 1,
         redelivered: false,

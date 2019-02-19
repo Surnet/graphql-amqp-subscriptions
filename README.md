@@ -9,3 +9,21 @@ This package is influenced by [graphql-redis-subscriptions](https://github.com/d
 [![npm Downloads](https://img.shields.io/npm/dm/graphql-amqp-subscriptions.svg)](https://www.npmjs.com/package/graphql-amqp-subscriptions)
 [![CircleCI](https://circleci.com/gh/Surnet/graphql-amqp-subscriptions.svg?style=svg)](https://circleci.com/gh/Surnet/graphql-amqp-subscriptions)
 [![Known Vulnerabilities](https://snyk.io/test/github/Surnet/graphql-amqp-subscriptions/badge.svg)](https://snyk.io/test/github/Surnet/graphql-amqp-subscriptions)
+
+# Basic usage
+
+```javascript
+import { AMQPPubSub } from 'graphql-amqp-subscriptions';
+import amqp from 'amqplib';
+
+amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
+.then(conn => {
+  const pubsub = new AMQPPubSub({
+    connection: conn
+  });
+  // Use the pubsub instance from here
+})
+.catch(err => {
+  console.error(err);
+});
+```

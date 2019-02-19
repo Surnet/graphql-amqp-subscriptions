@@ -1,3 +1,4 @@
+/* tslint:disable:no-unused-expression */
 import { AMQPPublisher } from './publisher';
 import { expect } from 'chai';
 import 'mocha';
@@ -45,7 +46,7 @@ describe('AMQP Publisher', () => {
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
   it('should publish a second message to an exchange', (done) => {
@@ -56,7 +57,7 @@ describe('AMQP Publisher', () => {
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
 });

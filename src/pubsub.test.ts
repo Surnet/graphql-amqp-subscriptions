@@ -1,3 +1,4 @@
+/* tslint:disable:no-unused-expression */
 import { AMQPPubSub } from './pubsub';
 import { expect } from 'chai';
 import 'mocha';
@@ -44,21 +45,23 @@ describe('AMQP PubSub', () => {
       expect(subscriberId).to.exist;
       pubsub.publish('testx.test', {test: 'data'})
       .then(() => {
-
+        expect(true).to.equal(true);
       })
       .catch(err => {
         expect(err).to.not.exist;
         done();
-      })
+      });
     })
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
   it('should be able to unsubscribe', (done) => {
-    pubsub.subscribe('test.test', () => {})
+    pubsub.subscribe('test.test', () => {
+      done(new Error('Should not reach'));
+    })
     .then(subscriberId => {
       expect(subscriberId).to.exist;
       expect(isNaN(subscriberId)).to.equal(false);
@@ -73,12 +76,14 @@ describe('AMQP PubSub', () => {
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
   it('should be able to receive a message after one of two subscribers unsubscribed', (done) => {
     // Subscribe two
-    pubsub.subscribe('testy.test', () => {})
+    pubsub.subscribe('testy.test', () => {
+      done(new Error('Should not reach'));
+    })
     .then(id1 => {
       pubsub.subscribe('testy.test', (message) => {
         // Receive message
@@ -95,12 +100,12 @@ describe('AMQP PubSub', () => {
         .then(() => {
           pubsub.publish('testy.test', {test: 'data'})
           .then(() => {
-
+            expect(true).to.equal(true);
           })
           .catch(err => {
             expect(err).to.not.exist;
             done();
-          })
+          });
         })
         .catch(err => {
           expect(err).to.not.exist;
@@ -113,13 +118,15 @@ describe('AMQP PubSub', () => {
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
   it('should be able to receive a message after one of two subscribers unsubscribed (concurrent)', (done) => {
     // Subscribe two
     Promise.all([
-      pubsub.subscribe('testz.test', () => {}),
+      pubsub.subscribe('testz.test', () => {
+        done(new Error('Should not reach'));
+      }),
       pubsub.subscribe('testz.test', (message) => {
         // Receive message
         expect(message).to.exist;
@@ -136,12 +143,12 @@ describe('AMQP PubSub', () => {
       .then(() => {
         pubsub.publish('testz.test', {test: 'data'})
         .then(() => {
-
+          expect(true).to.equal(true);
         })
         .catch(err => {
           expect(err).to.not.exist;
           done();
-        })
+        });
       })
       .catch(err => {
         expect(err).to.not.exist;
@@ -150,7 +157,7 @@ describe('AMQP PubSub', () => {
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
 });

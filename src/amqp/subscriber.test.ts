@@ -1,3 +1,4 @@
+/* tslint:disable:no-unused-expression */
 import { AMQPSubscriber } from './subscriber';
 import { AMQPPublisher } from './publisher';
 import { expect } from 'chai';
@@ -56,32 +57,34 @@ describe('AMQP Subscriber', () => {
       expect(disposer).to.exist;
       publisher.publish('exchange', 'test.test', {test: 'data'})
       .then(() => {
-
+        expect(true).to.equal(true);
       })
       .catch(err => {
         expect(err).to.not.exist;
         done();
-      })
+      });
     })
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
   it('should be able to unsubscribe', (done) => {
-    subscriber.subscribe('exchange', 'test.test', () => {})
+    subscriber.subscribe('exchange', 'test.test', () => {
+      done(new Error('Should not reach'));
+    })
     .then(disposer => {
       expect(disposer).to.exist;
       disposer()
       .then(() => {
         done();
-      })
+      });
     })
     .catch(err => {
       expect(err).to.not.exist;
       done();
-    })
+    });
   });
 
 });
