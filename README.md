@@ -20,8 +20,9 @@ amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
 .then(conn => {
   const pubsub = new AMQPPubSub({
     connection: conn
+    /* exchange: 'graphql_subscriptions' */
   });
-  // Use the pubsub instance from here
+  // Use the pubsub instance from here on
 })
 .catch(err => {
   console.error(err);
