@@ -1,3 +1,4 @@
+// chai style expect().to.be.true  violates no-unused-expression
 /* tslint:disable:no-unused-expression */
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -6,6 +7,7 @@ import sinonChai from 'sinon-chai';
 
 import { isAsyncIterable } from 'iterall';
 import { AMQPPubSub as PubSub } from './pubsub';
+import { withFilter, FilterFn } from 'graphql-subscriptions';
 import { ExecutionResult } from 'graphql';
 import amqp from 'amqplib';
 
@@ -25,8 +27,9 @@ import { subscribe } from 'graphql/subscription';
 const FIRST_EVENT = 'FIRST_EVENT';
 
 let conn: amqp.Connection;
+const defaultFilter = () => true;
 
-function buildSchema(iterator: any) {
+function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
   return new GraphQLSchema({
     query: new GraphQLObjectType({
       name: 'Query',
@@ -44,7 +47,7 @@ function buildSchema(iterator: any) {
       fields: {
         testSubscription: {
           type: GraphQLString,
-          subscribe: () => iterator,
+          subscribe: withFilter(() => iterator, filterFn),
           resolve: () => {
             return 'FIRST_EVENT';
           },
@@ -115,7 +118,7 @@ describe('GraphQL-JS asyncIterator', () => {
     `);
     const pubsub = new PubSub({ connection: conn });
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
-    const schema = buildSchema(origIterator);
+    const schema = buildSchema(origIterator, () => Promise.resolve(true));
 
     const results = await subscribe(schema, query) as AsyncIterator<ExecutionResult>;
     const payload1 = results.next();
@@ -143,7 +146,21 @@ describe('GraphQL-JS asyncIterator', () => {
     const pubsub = new PubSub({ connection: conn });
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
 
-    const schema = buildSchema(origIterator);
+    let counter = 0;
+
+    const filterFn = () => {
+      counter++;
+
+      if (counter > 10) {
+        const e = new Error('Infinite loop detected');
+        done(e);
+        throw e;
+      }
+
+      return false;
+    };
+
+    const schema = buildSchema(origIterator, filterFn);
 
     Promise.resolve(subscribe(schema, query)).then((results: AsyncIterator<ExecutionResult> | ExecutionResult) => {
       expect(isAsyncIterable(results)).to.be.true;
