@@ -1,6 +1,6 @@
 # graphql-amqp-subscriptions
 
-This package implements the PubSubEngine Interface from the graphql-subscriptions package.
+This package implements the PubSubEngine Interface from the [graphql-subscriptions](https://github.com/apollographql/graphql-subscriptions) package.
 It allows you to connect your subscriptions manager to a AMQP PubSub mechanism.
 
 This package is influenced by [graphql-redis-subscriptions](https://github.com/davidyaha/graphql-redis-subscriptions) and [graphql-rabbitmq-subscriptions](https://github.com/cdmbase/graphql-rabbitmq-subscriptions).
@@ -27,6 +27,13 @@ amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
   console.error(err);
 });
 ```
+
+# Benefits
+
+- Reusing existing [amqplib](https://github.com/squaremo/amqp.node) Connection
+- Reusing channels (one for subscriptions, one for publishing)
+- Performance/Ressource-usage benefits on AMQP (RabbitMQ) because of the aforementioned reasons [more info](https://www.cloudamqp.com/blog/2018-01-19-part4-rabbitmq-13-common-errors.html)
+- Using Topic Exchange (e.g. you publish to `agreements.eu.berlin.headstore` and subscribe to `agreements.eu.#`) [more info](https://www.cloudamqp.com/blog/2015-09-03-part4-rabbitmq-for-beginners-exchanges-routing-keys-bindings.html)
 
 # Debug
 
