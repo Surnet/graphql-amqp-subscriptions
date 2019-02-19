@@ -27,3 +27,8 @@ amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
   console.error(err);
 });
 ```
+
+# Debug
+
+This package uses Debug.
+To show the logs run your app with the environment variable DEBUG="AMQPPubSub"
