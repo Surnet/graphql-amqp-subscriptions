@@ -14,7 +14,6 @@ export class AMQPSubscriber {
 
   }
 
-  // ToDo: DO NOT USE MULTIPLE CHANNELS
   public async subscribe(
     exchange: string,
     routingKey: string,

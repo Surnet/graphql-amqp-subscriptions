@@ -40,6 +40,7 @@
     "release": "release-it"
   },
   "dependencies": {
+    "@types/debug": "4.1.2",
     "debug": "4.1.1",
     "graphql-subscriptions": "1.0.0"
   },
@@ -54,7 +55,6 @@
     "@types/amqplib": "0.5.9",
     "@types/chai": "4.1.7",
     "@types/chai-as-promised": "7.1.0",
-    "@types/debug": "0.0.31",
     "@types/graphql": "14.0.7",
     "@types/mocha": "5.2.6",
     "@types/sinon": "7.0.6",
