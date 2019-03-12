@@ -36,7 +36,7 @@
     "vulnerabilities": "npm audit",
     "check-updates": "npm outdated",
     "lint": "tslint \"src/**/*.ts\"",
-    "test": "nyc mocha",
+    "test": "TS_NODE_FILES=true nyc mocha",
     "release": "release-it"
   },
   "dependencies": {
@@ -67,6 +67,7 @@
     "eslint": "5.11.1",
     "graphql": "14.0.2",
     "mocha": "5.2.0",
+    "mocha-tslint": "0.3.0",
     "nodemon": "1.18.9",
     "nyc": "13.3.0",
     "release-it": "10.1.0",
