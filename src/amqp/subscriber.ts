@@ -28,7 +28,7 @@ export class AMQPSubscriber {
     return promise
     .then(async ch => {
       this.channel = ch;
-      return ch.assertExchange(exchange, 'topic', { durable: false, autoDelete: true })
+      return ch.assertExchange(exchange, 'fanout', { durable: false, autoDelete: true })
       .then(() => {
         return ch.assertQueue('', { exclusive: true, durable: false, autoDelete: true });
       })
