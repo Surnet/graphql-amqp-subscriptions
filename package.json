@@ -1,19 +1,19 @@
 {
-  "name": "graphql-amqp-subscriptions",
+  "name": "blockrange-graphql-amqp-subscriptions",
   "description": "GraphQL AMQP Subscriptions",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": "https://github.com/Surnet/graphql-amqp-subscriptions/graphs/contributors",
   "license": "MIT",
-  "homepage": "https://github.com/Surnet/graphql-amqp-subscriptions",
+  "homepage": "https://github.com/blockrange/graphql-amqp-subscriptions",
   "bugs": {
-    "url": "https://github.com/Surnet/graphql-amqp-subscriptions/issues"
+    "url": "https://github.com/blockrange/graphql-amqp-subscriptions/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Surnet/graphql-amqp-subscriptions.git"
+    "url": "https://github.com/blockrange/graphql-amqp-subscriptions"
   },
   "engines": {
-    "node": "10.15.1"
+    "node": "10.15.3"
   },
   "keywords": [
     "graphql",
