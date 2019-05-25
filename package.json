@@ -1,7 +1,7 @@
 {
   "name": "blockrange-graphql-amqp-subscriptions",
   "description": "GraphQL AMQP Subscriptions",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "author": "https://github.com/Surnet/graphql-amqp-subscriptions/graphs/contributors",
   "license": "MIT",
   "homepage": "https://github.com/blockrange/graphql-amqp-subscriptions",
