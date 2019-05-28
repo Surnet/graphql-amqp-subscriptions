@@ -1,10 +1,11 @@
 /* tslint:disable:no-unused-expression */
 import { AMQPPubSub } from './pubsub';
+import { PubSubAMQPConfig } from './amqp/interfaces';
 import { expect } from 'chai';
 import 'mocha';
 import amqp from 'amqplib';
 
-let conn: amqp.Connection;
+let config: PubSubAMQPConfig;
 let pubsub: AMQPPubSub;
 
 describe('AMQP PubSub', () => {
@@ -12,7 +13,24 @@ describe('AMQP PubSub', () => {
   before((done) => {
     amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
     .then(amqpConn => {
-      conn = amqpConn;
+      config = {
+        connection: amqpConn,
+        exchange: {
+          name: 'exchange',
+          type: 'topic',
+          options: {
+            durable: false,
+            autoDelete: true
+          }
+        },
+        queue: {
+          options: {
+            exclusive: true,
+            durable: true,
+            autoDelete: true
+          }
+        }
+      };
       done();
     })
     .catch(err => {
@@ -21,7 +39,7 @@ describe('AMQP PubSub', () => {
   });
 
   after((done) => {
-    conn.close()
+    config.connection.close()
     .then(() => {
       done();
     })
@@ -31,7 +49,7 @@ describe('AMQP PubSub', () => {
   });
 
   it('should create new instance of AMQPPubSub class', () => {
-    pubsub = new AMQPPubSub({ connection: conn });
+    pubsub = new AMQPPubSub(config);
     expect(pubsub).to.exist;
   });
 

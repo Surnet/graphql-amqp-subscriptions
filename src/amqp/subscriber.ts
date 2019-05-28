@@ -2,60 +2,64 @@ import amqp from 'amqplib';
 import Debug from 'debug';
 
 import { Logger } from './common';
+import { PubSubAMQPConfig, Exchange, Queue } from './interfaces';
 
 export class AMQPSubscriber {
-
+  private connection: amqp.Connection;
+  private exchange: Exchange;
+  private queue: Queue;
   private channel: amqp.Channel | null = null;
 
   constructor(
-    private connection: amqp.Connection,
+    private config: PubSubAMQPConfig,
     private logger: Debug.IDebugger
   ) {
-
+    this.connection = config.connection;
+    this.exchange = config.exchange;
+    this.queue = config.queue;
   }
 
-  public async subscribe(
-    exchange: string,
-    routingKey: string,
-    action: (routingKey: string, message: any) => void
-  ): Promise<() => PromiseLike<any>> {
+  public async subscribe(routingKey: string, action: (routingKey: string, message: any) => void): Promise<() => PromiseLike<any>> {
     let promise: PromiseLike<amqp.Channel>;
+
     if (this.channel) {
       promise = Promise.resolve(this.channel);
     } else {
       promise = this.connection.createChannel();
     }
-    return promise
-    .then(async ch => {
-      this.channel = ch;
-      return ch.assertExchange(exchange, 'fanout', { durable: false, autoDelete: true })
-      .then(() => {
-        return ch.assertQueue('', { exclusive: true, durable: false, autoDelete: true });
-      })
-      .then(async queue => {
-        return ch.bindQueue(queue.queue, exchange, routingKey)
-        .then(() => {
-          return queue;
-        });
-      })
-      .then(async queue => {
-        return ch.consume(queue.queue, (msg) => {
-          let parsedMessage = Logger.convertMessage(msg);
-          this.logger('Message arrived from Queue "%s" (%j)', queue.queue, parsedMessage);
-          action(routingKey, parsedMessage);
-        }, {noAck: true})
-        .then(opts => {
-          this.logger('Subscribed to Queue "%s" (%s)', queue.queue, opts.consumerTag);
-          return ((): PromiseLike<any> => {
-            this.logger('Disposing Subscriber to Queue "%s" (%s)', queue.queue, opts.consumerTag);
-            return ch.cancel(opts.consumerTag);
-          });
-        });
-      })
-      .catch(err => {
-        return Promise.reject(err);
-      });
-    });
-  }
 
+    try {
+      const ch = await promise;
+
+      this.channel = ch;
+
+      await ch.assertExchange(this.exchange.name, this.exchange.type, { ...this.exchange.options });
+
+      const queue = await ch.assertQueue(this.queue.name || '', { ...this.queue.options });
+
+      await ch.bindQueue(queue.queue, this.exchange.name, routingKey);
+
+      const opts = await ch.consume(queue.queue, (msg) => {
+        let parsedMessage = Logger.convertMessage(msg);
+        this.logger('Message arrived from Queue "%s" (%j)', queue.queue, parsedMessage);
+        action(routingKey, parsedMessage);
+      }, {noAck: true});
+
+      this.logger('Subscribed to Queue "%s" (%s)', queue.queue, opts.consumerTag);
+
+      const disposer = (): PromiseLike<any> => {
+        this.logger('Disposing Subscriber to Queue "%s" (%s)', queue.queue, opts.consumerTag);
+
+        return Promise.all([
+          ch.cancel(opts.consumerTag),
+          ch.unbindQueue(queue.queue, this.exchange.name, routingKey),
+          ch.deleteQueue(queue.queue)
+        ]);
+      };
+
+      return disposer;
+    } catch (err) {
+      return Promise.reject(err);
+    }
+  }
 }

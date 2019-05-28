@@ -1,5 +1,6 @@
 /* tslint:disable:no-unused-expression */
 import { AMQPPublisher } from './publisher';
+import { PubSubAMQPConfig } from './interfaces';
 import { expect } from 'chai';
 import 'mocha';
 import Debug from 'debug';
@@ -7,7 +8,7 @@ import amqp from 'amqplib';
 
 const logger = Debug('AMQPPubSub');
 
-let conn: amqp.Connection;
+let config: PubSubAMQPConfig;
 let publisher: AMQPPublisher;
 
 describe('AMQP Publisher', () => {
@@ -15,7 +16,18 @@ describe('AMQP Publisher', () => {
   before((done) => {
     amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
     .then(amqpConn => {
-      conn = amqpConn;
+      config = {
+        connection: amqpConn,
+        exchange: {
+          name: 'exchange',
+          type: 'topic',
+          options: {
+            durable: false,
+            autoDelete: true
+          }
+        },
+        queue: {}
+      };
       done();
     })
     .catch(err => {
@@ -24,7 +36,7 @@ describe('AMQP Publisher', () => {
   });
 
   after((done) => {
-    conn.close()
+    config.connection.close()
     .then(() => {
       done();
     })
@@ -34,12 +46,12 @@ describe('AMQP Publisher', () => {
   });
 
   it('should create new instance of AMQPPublisher class', () => {
-    publisher = new AMQPPublisher(conn, logger);
+    publisher = new AMQPPublisher(config, logger);
     expect(publisher).to.exist;
   });
 
   it('should publish a message to an exchange', (done) => {
-    publisher.publish('exchange', 'test.test', {test: 'data'})
+    publisher.publish('test.test', {test: 'data'})
     .then(() => {
       done();
     })
@@ -50,7 +62,7 @@ describe('AMQP Publisher', () => {
   });
 
   it('should publish a second message to an exchange', (done) => {
-    publisher.publish('exchange', 'test.test', {test: 'data'})
+    publisher.publish('test.test', {test: 'data'})
     .then(() => {
       done();
     })
