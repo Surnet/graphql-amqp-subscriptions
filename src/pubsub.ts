@@ -58,17 +58,22 @@ export class AMQPPubSub implements PubSubEngine {
 
       return Promise.resolve(id);
     } else {
-      const disposer = await this.subscriber.subscribe(routingKey, this.onMessage.bind(this));
+      try {
+        const disposer = await this.subscriber.subscribe(routingKey, this.onMessage.bind(this));
 
-      this.subsRefsMap[routingKey] = [...(this.subsRefsMap[routingKey] || []), id];
+        this.subsRefsMap[routingKey] = [...(this.subsRefsMap[routingKey] || []), id];
 
-      if (this.unsubscribeMap[routingKey]) {
-        return disposer();
+        if (this.unsubscribeMap[routingKey]) {
+          return disposer();
+        }
+
+        this.unsubscribeMap[routingKey] = disposer;
+
+        return Promise.resolve(id);
+      } catch(err) {
+        logger(err)
+        return Promise.reject(id);
       }
-
-      this.unsubscribeMap[routingKey] = disposer;
-
-      return Promise.resolve(id);
     }
   }
 
