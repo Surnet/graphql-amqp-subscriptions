@@ -13,7 +13,7 @@
     "url": "https://github.com/Surnet/graphql-amqp-subscriptions.git"
   },
   "engines": {
-    "node": "10.15.1"
+    "node": "10.x.x"
   },
   "keywords": [
     "graphql",
