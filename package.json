@@ -82,6 +82,9 @@
   },
   "mocha": {
     "recursive": true,
-    "spec": ["src/**/*.test.ts", "test/**/*.test.ts"]
+    "spec": [
+      "src/**/*.test.ts",
+      "test/**/*.test.ts"
+    ]
   }
 }
