@@ -79,5 +79,9 @@
   "peerDependencies": {
     "amqplib": "^0.5.3",
     "graphql": "^14.0.2"
+  },
+  "mocha": {
+    "recursive": true,
+    "spec": ["src/**/*.test.ts", "test/**/*.test.ts"]
   }
 }
