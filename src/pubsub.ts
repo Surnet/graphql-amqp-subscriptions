@@ -1,6 +1,7 @@
 import { PubSubEngine } from 'graphql-subscriptions';
 import amqp from 'amqplib';
 import Debug from 'debug';
+import { EventEmitter } from 'events';
 
 import { PubSubAMQPOptions } from './interfaces';
 import { AMQPPublisher } from './amqp/publisher';
@@ -13,13 +14,13 @@ export class AMQPPubSub implements PubSubEngine {
 
   private connection: amqp.Connection;
   private exchange: string;
+  private emitter: EventEmitter;
 
   private publisher: AMQPPublisher;
   private subscriber: AMQPSubscriber;
 
-  private subscriptionMap: { [subId: number]: { routingKey: string, listener: Function } };
-  private subsRefsMap: { [trigger: string]: Array<number> };
-  private unsubscribeMap: { [trigger: string]: () => PromiseLike<any> };
+  private subscriptionMap: { [subId: number]: { routingKey: string, listener: (message: any) => void } };
+  private consumerMap: { [routingKey: string]: { numSubs: number, dispose: () => Promise<void> } };
   private currentSubscriptionId: number;
 
   constructor(
@@ -28,10 +29,10 @@ export class AMQPPubSub implements PubSubEngine {
     // Setup Variables
     this.connection = options.connection;
     this.exchange = options.exchange || 'graphql_subscriptions';
+    this.emitter = new EventEmitter();
 
     this.subscriptionMap = {};
-    this.subsRefsMap = {};
-    this.unsubscribeMap = {};
+    this.consumerMap = {};
     this.currentSubscriptionId = 0;
 
     // Initialize AMQP Helper
@@ -48,77 +49,69 @@ export class AMQPPubSub implements PubSubEngine {
 
   public async subscribe(routingKey: string, onMessage: (message: any) => void): Promise<number> {
     const id = this.currentSubscriptionId++;
+    logger('Subscribe ID: "%s"', id);
+
+    // Reigster to listen for new messages
     this.subscriptionMap[id] = {
       routingKey: routingKey,
       listener: onMessage
     };
+    this.emitter.addListener(routingKey, onMessage);
 
-    const refs = this.subsRefsMap[routingKey];
-    if (refs && refs.length > 0) {
-      const newRefs = [...refs, id];
-      this.subsRefsMap[routingKey] = newRefs;
-      return Promise.resolve(id);
-    } else {
-      return this.subscriber.subscribe(this.exchange, routingKey, this.onMessage.bind(this))
-      .then(disposer => {
-        this.subsRefsMap[routingKey] = [
-          ...(this.subsRefsMap[routingKey] || []),
-          id,
-        ];
-        if (this.unsubscribeMap[routingKey]) {
-          return disposer();
-        }
-        this.unsubscribeMap[routingKey] = disposer;
-        return Promise.resolve(id);
-      });
+    // Increment sub count if already connected
+    const consumer = this.consumerMap[routingKey];
+    if (consumer) {
+      this.consumerMap[routingKey] = {
+        ...consumer,
+        numSubs: consumer.numSubs++,
+      };
+      return id;
     }
+
+    // Create new consumer tracking object
+    const dispose = await this.subscriber.subscribe(
+      this.exchange,
+      routingKey,
+      (key: string, message: any) => {
+        this.emitter.emit(key, message);
+      }
+    );
+    this.consumerMap[routingKey] = { numSubs: 1, dispose };
+    return id;
   }
 
-  public unsubscribe(subId: number): Promise<void> {
-    const routingKey = this.subscriptionMap[subId].routingKey;
-    const refs = this.subsRefsMap[routingKey];
+  public async unsubscribe(subId: number): Promise<void> {
+    logger('Unsubscribe ID: "%s"', subId);
+    const sub = this.subscriptionMap[subId];
+    if (!sub) {
+      throw new Error(`There is no subscription with ID "${subId}"`);
+    }
+    // Unregister
+    const { routingKey, listener } = sub;
+    delete this.subscriptionMap[subId];
+    this.emitter.removeListener(routingKey, listener);
 
-    if (!refs) {
-      throw new Error(`There is no subscription of id "${subId}"`);
+    const consumer = this.consumerMap[routingKey];
+    if (!consumer) {
+      throw new Error(`There is no consumer for Routing Key "${routingKey}"`);
     }
 
-    if (refs.length === 1) {
-      delete this.subscriptionMap[subId];
-      return this.unsubscribeForKey(routingKey);
-    } else {
-      const index = refs.indexOf(subId);
-      const newRefs =
-        index === -1
-          ? refs
-          : [...refs.slice(0, index), ...refs.slice(index + 1)];
-      this.subsRefsMap[routingKey] = newRefs;
-      delete this.subscriptionMap[subId];
+    // Decrement sub count and remove if empty
+    consumer.numSubs--;
+    if (consumer.numSubs <= 0) {
+      /* Note: Always remove from map before disposing.
+       * This allows a new subscribe call with the same routing key
+       * to resolve with a new consumer.
+       *
+       * In some cases this could lead to churn if subs for a given
+       * routing key are contantly fluctating between n and 0 subs.
+       */
+      delete this.consumerMap[subId];
+      await consumer.dispose();
     }
-    return Promise.resolve();
   }
 
   public asyncIterator<T>(triggers: string | string[]): AsyncIterator<T> {
     return new PubSubAsyncIterator<T>(this, triggers);
   }
-
-  private onMessage(routingKey: string, message: any): void {
-    const subscribers = this.subsRefsMap[routingKey];
-
-    // Don't work for nothing..
-    if (!subscribers || !subscribers.length) {
-      this.unsubscribeForKey(routingKey);
-      return;
-    }
-
-    for (const subId of subscribers) {
-      this.subscriptionMap[subId].listener(message);
-    }
-  }
-
-  private async unsubscribeForKey(routingKey: string): Promise<void> {
-    await this.unsubscribeMap[routingKey]();
-    delete this.subsRefsMap[routingKey];
-    delete this.unsubscribeMap[routingKey];
-  }
-
 }

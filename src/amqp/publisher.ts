@@ -13,24 +13,16 @@ export class AMQPPublisher {
   }
 
   public async publish(exchange: string, routingKey: string, data: any): Promise<void> {
-    let promise: PromiseLike<amqp.Channel>;
-    if (this.channel) {
-      promise = Promise.resolve(this.channel);
-    } else {
-      promise = this.connection.createChannel();
+    const channel = await this.getOrCreateChannel();
+    await channel.assertExchange(exchange, 'topic', { durable: false, autoDelete: false });
+    await channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(data)));
+    this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', exchange, routingKey, data);
+  }
+
+  private async getOrCreateChannel(): Promise<amqp.Channel> {
+    if (!this.channel) {
+      this.channel = await this.connection.createChannel();
     }
-    return promise
-    .then(async ch => {
-      this.channel = ch;
-      return ch.assertExchange(exchange, 'topic', { durable: false, autoDelete: false })
-      .then(() => {
-        this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', exchange, routingKey, data);
-        ch.publish(exchange, routingKey, Buffer.from(JSON.stringify(data)));
-        return Promise.resolve();
-      })
-      .catch(err => {
-        return Promise.reject(err);
-      });
-    });
+    return this.channel;
   }
 }
