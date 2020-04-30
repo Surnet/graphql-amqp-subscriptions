@@ -3,6 +3,7 @@ import { AMQPPubSub } from './pubsub';
 import { expect } from 'chai';
 import 'mocha';
 import amqp from 'amqplib';
+import { EventEmitter } from 'events';
 
 let conn: amqp.Connection;
 let pubsub: AMQPPubSub;
@@ -20,6 +21,10 @@ describe('AMQP PubSub', () => {
     });
   });
 
+  beforeEach(() => {
+    pubsub = new AMQPPubSub({ connection: conn });
+  });
+
   after((done) => {
     conn.close()
     .then(() => {
@@ -31,7 +36,6 @@ describe('AMQP PubSub', () => {
   });
 
   it('should create new instance of AMQPPubSub class', () => {
-    pubsub = new AMQPPubSub({ connection: conn });
     expect(pubsub).to.exist;
   });
 
@@ -158,6 +162,35 @@ describe('AMQP PubSub', () => {
       expect(err).to.not.exist;
       done();
     });
+  });
+
+  it('should be able to receive a message after an unsubscribe and then an immediate subscribe', async () => {
+    // Subscribe one
+    const id1 = await pubsub.subscribe('testy.test', () => {
+      throw new Error('Should not reach');
+    });
+    expect(id1).to.exist;
+
+    const emitter = new EventEmitter();
+    const msgPromise = new Promise<{ test: string }>((resolve) => emitter.once('message', resolve));
+
+    // Unsub one, sub while unsub is running
+    const [, id2] = await Promise.all([
+      pubsub.unsubscribe(id1),
+      pubsub.subscribe('testy.test', (message) => {
+        emitter.emit('message', message);
+      }),
+    ]);
+
+    expect(id2).to.exist;
+    expect(id1).to.not.equal(id2);
+
+    await pubsub.publish('testy.test', {test: '1337'});
+    const msg = await msgPromise;
+
+    // Receive message
+    expect(msg).to.exist;
+    expect(msg.test).to.equal('1337');
   });
 
 });
