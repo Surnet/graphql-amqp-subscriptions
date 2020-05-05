@@ -116,9 +116,10 @@ export class AMQPPubSub implements PubSubEngine {
   }
 
   private async unsubscribeForKey(routingKey: string): Promise<void> {
-    await this.unsubscribeMap[routingKey]();
-    delete this.subsRefsMap[routingKey];
+    const disposer = this.unsubscribeMap[routingKey];
     delete this.unsubscribeMap[routingKey];
+    delete this.subsRefsMap[routingKey];
+    await disposer();
   }
 
 }
