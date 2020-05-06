@@ -12,25 +12,12 @@ let publisher: AMQPPublisher;
 
 describe('AMQP Publisher', () => {
 
-  before((done) => {
-    amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
-    .then(amqpConn => {
-      conn = amqpConn;
-      done();
-    })
-    .catch(err => {
-      done(err);
-    });
+  before(async () => {
+    conn = await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30');
   });
 
-  after((done) => {
-    conn.close()
-    .then(() => {
-      done();
-    })
-    .catch(err => {
-      done(err);
-    });
+  after(async () => {
+    return conn.close();
   });
 
   it('should create new instance of AMQPPublisher class', () => {
@@ -38,26 +25,12 @@ describe('AMQP Publisher', () => {
     expect(publisher).to.exist;
   });
 
-  it('should publish a message to an exchange', (done) => {
-    publisher.publish('exchange', 'test.test', {test: 'data'})
-    .then(() => {
-      done();
-    })
-    .catch(err => {
-      expect(err).to.not.exist;
-      done();
-    });
+  it('should publish multiple messages to an exchange', async () => {
+    return publisher.publish('exchange', 'test.test', {test: 'data'});
   });
 
-  it('should publish a second message to an exchange', (done) => {
-    publisher.publish('exchange', 'test.test', {test: 'data'})
-    .then(() => {
-      done();
-    })
-    .catch(err => {
-      expect(err).to.not.exist;
-      done();
-    });
+  it('should publish a second message to an exchange', async () => {
+    return publisher.publish('exchange', 'test.test', {test: 'data'});
   });
 
 });
