@@ -1,6 +1,6 @@
 {
-  "scripts": {
-    "beforeStart": "npm install && npm run build"
+  "hooks": {
+    "before:init": "npm install && npm run build"
   },
   "git": {
     "requireCleanWorkingDir": false,
