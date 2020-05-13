@@ -91,7 +91,10 @@
     "switch-default": true,
     "trailing-comma": [
       true,
-      {"multiline": "never", "singleline": "never"}
+      {
+        "multiline": "never",
+        "singleline": "never"
+      }
     ],
     "triple-equals": [
       true,
