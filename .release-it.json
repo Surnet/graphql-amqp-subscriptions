@@ -7,7 +7,7 @@
     "requireUpstream": true,
     "addUntrackedFiles": false,
     "commit": true,
-    "commitMessage": "[ci skip] Release %s"
+    "commitMessage": "[ci skip] Release ${version}"
   },
   "github": {
     "release": true
