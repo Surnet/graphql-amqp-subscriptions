@@ -19,7 +19,7 @@ import {
   parse,
   GraphQLSchema,
   GraphQLObjectType,
-  GraphQLString,
+  GraphQLString
 } from 'graphql';
 
 import { subscribe } from 'graphql/subscription';
@@ -28,6 +28,16 @@ const FIRST_EVENT = 'FIRST_EVENT';
 
 let conn: amqp.Connection;
 const defaultFilter = () => true;
+
+async function sleep(milliseconds: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    try {
+      setTimeout(resolve, milliseconds);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
 
 function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
   return new GraphQLSchema({
@@ -38,9 +48,9 @@ function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
           type: GraphQLString,
           resolve: function() {
             return 'works';
-          },
-        },
-      },
+          }
+        }
+      }
     }),
     subscription: new GraphQLObjectType({
       name: 'Subscription',
@@ -50,42 +60,27 @@ function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
           subscribe: withFilter(() => iterator, filterFn),
           resolve: () => {
             return 'FIRST_EVENT';
-          },
-        },
-      },
-    }),
+          }
+        }
+      }
+    })
   });
 }
 
 describe('GraphQL-JS asyncIterator', () => {
 
-  before((done) => {
-    amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
-    .then(amqpConn => {
-      conn = amqpConn;
-      done();
-    })
-    .catch(err => {
-      done(err);
-    });
+  before(async () => {
+    conn = await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30');
   });
 
-  after((done) => {
-    setTimeout(() => {
-      conn.close()
-      .then(() => {
-        done();
-      })
-      .catch(err => {
-        done(err);
-      });
-    }, 100);
+  after(async () => {
+    await sleep(100);
+    return conn.close();
   });
 
   it('should allow subscriptions', async () => {
     const query = parse(`
       subscription S1 {
-
         testSubscription
       }
     `);
@@ -112,7 +107,6 @@ describe('GraphQL-JS asyncIterator', () => {
   it('should allow async filter', async () => {
     const query = parse(`
       subscription S1 {
-
         testSubscription
       }
     `);

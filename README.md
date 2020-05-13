@@ -10,7 +10,7 @@ This package is influenced by [graphql-redis-subscriptions](https://github.com/d
 [![CircleCI](https://circleci.com/gh/Surnet/graphql-amqp-subscriptions.svg?style=svg)](https://circleci.com/gh/Surnet/graphql-amqp-subscriptions)
 [![Known Vulnerabilities](https://snyk.io/test/github/Surnet/graphql-amqp-subscriptions/badge.svg)](https://snyk.io/test/github/Surnet/graphql-amqp-subscriptions)
 
-# Basic usage
+## Basic usage
 
 ```javascript
 import { AMQPPubSub } from 'graphql-amqp-subscriptions';
@@ -29,14 +29,30 @@ amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
 });
 ```
 
-# Benefits
+## Benefits
 
 - Reusing existing [amqplib](https://github.com/squaremo/amqp.node) Connection
 - Reusing channels (one for subscriptions, one for publishing)
 - Performance/Ressource-usage benefits on AMQP (RabbitMQ) because of the aforementioned reasons [more info](https://www.cloudamqp.com/blog/2018-01-19-part4-rabbitmq-13-common-errors.html)
 - Using Topic Exchange (e.g. you publish to `agreements.eu.berlin.headstore` and subscribe to `agreements.eu.#`) [more info](https://www.cloudamqp.com/blog/2015-09-03-part4-rabbitmq-for-beginners-exchanges-routing-keys-bindings.html)
 
-# Debug
+## Debug
 
 This package uses Debug.
 To show the logs run your app with the environment variable DEBUG="AMQPPubSub"
+
+## Tests
+
+You'll need to have a local AMPQ instance such as RabbitMQ running to run tests.
+
+If you have [Docker](https://www.docker.com/), you can run:
+
+```bash
+docker run --hostname my-rabbit -p 5672:5672 rabbitmq:3
+```
+
+Then
+
+```bash
+npm test
+```
