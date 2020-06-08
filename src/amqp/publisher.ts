@@ -17,29 +17,17 @@ export class AMQPPublisher {
   }
 
   public async publish(routingKey: string, data: any): Promise<void> {
-    this.logger('Publishing message to exchange "%s" for key "%s" (%j)', this.exchange.name, routingKey, data);
+    const channel = await this.getOrCreateChannel();
+    await channel.assertExchange(this.exchange.name, this.exchange.type, { ...this.exchange.options });
+    await channel.publish(this.exchange.name, routingKey, Buffer.from(JSON.stringify(data)));
+    this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', this.exchange.name, routingKey, data);
+  }
 
-    let promise: PromiseLike<amqp.Channel>;
-
-    if (this.channel) {
-      promise = Promise.resolve(this.channel);
-    } else {
-      promise = this.connection.createChannel();
+  private async getOrCreateChannel(): Promise<amqp.Channel> {
+    if (!this.channel) {
+      this.channel = await this.connection.createChannel();
+      this.channel.on('error', (err) => { this.logger('Publisher channel error: "%j"', err); });
     }
-
-    try {
-      const ch = await promise;
-
-      this.channel = ch;
-
-      await ch.assertExchange(this.exchange.name, this.exchange.type, { ...this.exchange.options });
-      await ch.publish(this.exchange.name, routingKey, Buffer.from(JSON.stringify(data)));
-
-      this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', this.exchange.name, routingKey, data);
-
-      return Promise.resolve();
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    return this.channel;
   }
 }

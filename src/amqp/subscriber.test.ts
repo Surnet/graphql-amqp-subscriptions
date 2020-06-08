@@ -6,51 +6,46 @@ import { expect } from 'chai';
 import 'mocha';
 import Debug from 'debug';
 import amqp from 'amqplib';
+import { EventEmitter } from 'events';
+
+type TestData = {
+  routingKey: string,
+  message: {
+    test: string
+  }
+};
 
 const logger = Debug('AMQPPubSub');
 
-let config: PubSubAMQPConfig;
 let subscriber: AMQPSubscriber;
 let publisher: AMQPPublisher;
+let config: PubSubAMQPConfig;
 
 describe('AMQP Subscriber', () => {
 
-  before((done) => {
-    amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
-    .then(amqpConn => {
-      config = {
-        connection: amqpConn,
-        exchange: {
-          name: 'exchange',
-          type: 'topic',
-          options: {
-            durable: false,
-            autoDelete: true
-          }
-        },
-        queue: {
-          options: {
-            exclusive: true,
-            durable: true,
-            autoDelete: true
-          }
+  before(async () => {
+    config = {
+      connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
+      exchange: {
+        name: 'exchange',
+        type: 'topic',
+        options: {
+          durable: false,
+          autoDelete: true
         }
-      };
-      done();
-    })
-    .catch(err => {
-      done(err);
-    });
+      },
+      queue: {
+        options: {
+          exclusive: true,
+          durable: true,
+          autoDelete: true
+        }
+      }
+    };
   });
 
-  after((done) => {
-    config.connection.close()
-    .then(() => {
-      done();
-    })
-    .catch(err => {
-      done(err);
-    });
+  after(async () => {
+    return config.connection.close();
   });
 
   it('should create new instance of AMQPSubscriber class', () => {
@@ -63,46 +58,38 @@ describe('AMQP Subscriber', () => {
     expect(publisher).to.exist;
   });
 
-  it('should be able to receive a message through an exchange', (done) => {
-    subscriber.subscribe('*.test', (routingKey, message) => {
-      expect(routingKey).to.exist;
-      expect(message).to.exist;
-      expect(message.test).to.exist;
-      expect(message.test).to.equal('data');
-      done();
-    })
-    .then(disposer => {
-      expect(disposer).to.exist;
-      publisher.publish('test.test', {test: 'data'})
-      .then(() => {
-        expect(true).to.equal(true);
-      })
-      .catch(err => {
-        expect(err).to.not.exist;
-        done();
-      });
-    })
-    .catch(err => {
-      expect(err).to.not.exist;
-      done();
+  it('should be able to receive a message through an exchange', async () => {
+    const emitter = new EventEmitter();
+    const msgPromise = new Promise<TestData>((resolve) => { emitter.once('message', resolve); });
+
+    const dispose = await subscriber.subscribe('*.test', (routingKey, message) => {
+      emitter.emit('message', { routingKey, message });
     });
+    expect(dispose).to.exist;
+
+    await publisher.publish('test.test', {test: 'data'});
+    const { routingKey: key, message: msg } = await msgPromise;
+
+    expect(key).to.exist;
+    expect(msg).to.exist;
+    expect(msg.test).to.exist;
+    expect(msg.test).to.equal('data');
+
+    return dispose();
   });
 
-  it('should be able to unsubscribe', (done) => {
-    subscriber.subscribe('test.test', () => {
-      done(new Error('Should not reach'));
-    })
-    .then(disposer => {
-      expect(disposer).to.exist;
-      disposer()
-      .then(() => {
-        done();
-      });
-    })
-    .catch(err => {
-      expect(err).to.not.exist;
-      done();
+  it('should be able to unsubscribe', async () => {
+    const emitter = new EventEmitter();
+    const errPromise = new Promise((_resolve, reject) => { emitter.once('error', reject); });
+
+    const dispose = await subscriber.subscribe('test.test', () => {
+      emitter.emit('error', new Error('Should not reach'));
     });
+
+    return Promise.race([
+      dispose,
+      errPromise
+    ]);
   });
 
 });
