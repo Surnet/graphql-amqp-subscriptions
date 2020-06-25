@@ -47,26 +47,26 @@
     "@types/chai": "4.2.11",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "7.0.2",
-    "@types/sinon": "9.0.0",
+    "@types/sinon": "9.0.4",
     "@types/sinon-chai": "3.2.4",
-    "amqplib": "0.5.5",
+    "amqplib": "0.5.6",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
-    "eslint": "7.0.0",
-    "graphql": "14.5.8",
-    "mocha": "7.1.2",
+    "eslint": "7.3.1",
+    "graphql": "14.6.0",
+    "mocha": "8.0.1",
     "mocha-tslint": "0.3.0",
-    "nodemon": "2.0.3",
-    "nyc": "15.0.1",
-    "release-it": "13.5.8",
+    "nodemon": "2.0.4",
+    "nyc": "15.1.0",
+    "release-it": "13.6.3",
     "sinon": "9.0.2",
     "sinon-chai": "3.5.0",
-    "ts-node": "8.10.1",
+    "ts-node": "8.10.2",
     "tslint": "6.1.2",
-    "typescript": "3.8.3"
+    "typescript": "3.9.5"
   },
   "peerDependencies": {
-    "amqplib": "^0.5.3",
+    "amqplib": ">= 0.5.3",
     "graphql": "^14.5.0"
   },
   "mocha": {
@@ -75,5 +75,8 @@
       "src/**/*.test.ts",
       "test/**/*.test.ts"
     ]
+  },
+  "nodemonConfig": {
+    "signal": "SIGINT"
   }
 }
