@@ -18,7 +18,3 @@ export interface PubSubAMQPConfig {
   exchange?: Exchange;
   queue?: Queue;
 }
-
-export function isPubSubAMQPConfig(config: PubSubAMQPConfig | amqp.Connection): config is PubSubAMQPConfig {
-  return (config as amqp.Connection).createChannel === undefined;
-}
