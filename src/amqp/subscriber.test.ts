@@ -37,7 +37,7 @@ describe('AMQP Subscriber', () => {
       queue: {
         options: {
           exclusive: true,
-          durable: true,
+          durable: false,
           autoDelete: true
         }
       }
@@ -48,7 +48,12 @@ describe('AMQP Subscriber', () => {
     return config.connection.close();
   });
 
-  it('should create new instance of AMQPSubscriber class', () => {
+  it('should create new instance of AMQPSubscriber class with connection only', () => {
+    const simpleSubscriber = new AMQPSubscriber({ connection: config.connection }, logger);
+    expect(simpleSubscriber).to.exist;
+  });
+
+  it('should create new instance of AMQPSubscriber class with config', () => {
     subscriber = new AMQPSubscriber(config, logger);
     expect(subscriber).to.exist;
   });

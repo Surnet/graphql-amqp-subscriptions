@@ -20,7 +20,24 @@ amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30')
 .then(conn => {
   const pubsub = new AMQPPubSub({
     connection: conn
-    /* exchange: 'graphql_subscriptions' */
+    /* exchange: {
+       name: 'exchange',
+       type: 'topic',
+       options: {
+         durable: false,
+         autoDelete: true
+       }
+     },
+     queue: {
+       name: 'queue'
+       options: {
+         exclusive: true,
+         durable: true,
+         autoDelete: true
+       },
+       unbindOnDispose: false;
+       deleteOnDispose: false;
+     } */
   });
   // Use the pubsub instance from here on
 })
