@@ -1,8 +1,8 @@
 import amqp from 'amqplib';
 
 export interface Exchange {
-  name?: string;
-  type?: string;
+  name: string;
+  type: string;
   options?: amqp.Options.AssertExchange;
 }
 

@@ -5,12 +5,7 @@ import { PubSubAMQPConfig, Exchange } from './interfaces';
 
 export class AMQPPublisher {
   private connection: amqp.Connection;
-  private exchange: Exchange = {
-    options: {
-      durable: false,
-      autoDelete: false
-    }
-  };
+  private exchange: Exchange;
   private channel: amqp.Channel | null = null;
 
   constructor(
@@ -18,17 +13,21 @@ export class AMQPPublisher {
     private logger: Debug.IDebugger
   ) {
     this.connection = config.connection;
-    this.exchange = { ...config.exchange };
+    this.exchange = {
+      name: 'graphql_subscriptions',
+      type: 'topic',
+      options: {
+        durable: false,
+        autoDelete: false
+      },
+      ...config.exchange
+    };
   }
 
   public async publish(routingKey: string, data: any): Promise<void> {
     const channel = await this.getOrCreateChannel();
-    await channel.assertExchange(
-      this.exchange.name || 'graphql_subscriptions',
-      this.exchange.type || 'topic',
-      this.exchange.options
-    );
-    await channel.publish(this.exchange.name || 'graphql_subscriptions', routingKey, Buffer.from(JSON.stringify(data)));
+    await channel.assertExchange(this.exchange.name, this.exchange.type, this.exchange.options);
+    await channel.publish(this.exchange.name, routingKey, Buffer.from(JSON.stringify(data)));
     this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', this.exchange.name, routingKey, data);
   }
 

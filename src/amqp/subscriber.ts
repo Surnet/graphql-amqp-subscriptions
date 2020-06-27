@@ -6,19 +6,8 @@ import { PubSubAMQPConfig, Exchange, Queue } from './interfaces';
 
 export class AMQPSubscriber {
   private connection: amqp.Connection;
-  private exchange: Exchange = {
-    options: {
-      durable: false,
-      autoDelete: false
-    }
-  };
-  private queue: Queue = {
-    options: {
-      exclusive: true,
-      durable: false,
-      autoDelete: true
-    }
-  };
+  private exchange: Exchange;
+  private queue: Queue;
   private channel: amqp.Channel | null = null;
 
   constructor(
@@ -26,8 +15,23 @@ export class AMQPSubscriber {
     private logger: Debug.IDebugger
   ) {
     this.connection = config.connection;
-    this.exchange = { ...config.exchange };
-    this.queue = { ...config.queue };
+    this.exchange = {
+      name: 'graphql_subscriptions',
+      type: 'topic',
+      options: {
+        durable: false,
+        autoDelete: false
+      },
+      ...config.exchange
+    };
+    this.queue = {
+      options: {
+        exclusive: true,
+        durable: false,
+        autoDelete: true
+      },
+      ...config.queue
+    };
   }
 
   public async subscribe(
@@ -36,13 +40,9 @@ export class AMQPSubscriber {
   ): Promise<() => Promise<void>> {
     // Create and bind queue
     const channel = await this.getOrCreateChannel();
-    await channel.assertExchange(
-      this.exchange.name || 'graphql_subscriptions',
-      this.exchange.type || 'topic',
-      this.exchange.options
-    );
+    await channel.assertExchange(this.exchange.name, this.exchange.type, this.exchange.options);
     const queue = await channel.assertQueue(this.queue.name || '', this.queue.options);
-    await channel.bindQueue(queue.queue, this.exchange.name || 'graphql_subscriptions', routingKey);
+    await channel.bindQueue(queue.queue, this.exchange.name, routingKey);
 
     // Listen for messages
     const opts = await channel.consume(queue.queue, (msg) => {
@@ -58,7 +58,7 @@ export class AMQPSubscriber {
       const ch = await this.getOrCreateChannel();
       await ch.cancel(opts.consumerTag);
       if (this.queue.unbindOnDispose) {
-        await ch.unbindQueue(queue.queue, this.exchange.name || 'graphql_subscriptions', routingKey);
+        await ch.unbindQueue(queue.queue, this.exchange.name, routingKey);
       }
       if (this.queue.deleteOnDispose) {
         await ch.deleteQueue(queue.queue);

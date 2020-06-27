@@ -32,13 +32,21 @@ export class AMQPPubSub implements PubSubEngine {
     this.publisher = new AMQPPublisher(config, logger);
     this.subscriber = new AMQPSubscriber(config, logger);
 
-    this.exchange = config.exchange || {};
+    this.exchange = {
+      name: 'graphql_subscriptions',
+      type: 'topic',
+      options: {
+        durable: false,
+        autoDelete: false
+      },
+      ...config.exchange
+    };
 
     logger('Finished initializing');
   }
 
   public async publish(routingKey: string, payload: any): Promise<void> {
-    logger('Publishing message to exchange "%s" for key "%s" (%j)', this.exchange.name || 'graphql_subscriptions', routingKey, payload);
+    logger('Publishing message to exchange "%s" for key "%s" (%j)', this.exchange.name, routingKey, payload);
     return this.publisher.publish(routingKey, payload);
   }
 
