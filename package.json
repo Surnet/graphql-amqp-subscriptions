@@ -38,8 +38,6 @@
     "release": "release-it"
   },
   "dependencies": {
-    "@types/debug": "4.1.5",
-    "@types/uuid": "8.0.0",
     "debug": "4.1.1",
     "graphql-subscriptions": "1.1.0",
     "uuid": "8.2.0"
@@ -48,9 +46,11 @@
     "@types/amqplib": "0.5.13",
     "@types/chai": "4.2.11",
     "@types/chai-as-promised": "7.1.2",
+    "@types/debug": "4.1.5",
     "@types/mocha": "7.0.2",
     "@types/sinon": "9.0.0",
     "@types/sinon-chai": "3.2.4",
+    "@types/uuid": "8.0.0",
     "amqplib": "0.5.5",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
