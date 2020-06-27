@@ -1,22 +1,34 @@
 import amqp from 'amqplib';
 import Debug from 'debug';
 
-export class AMQPPublisher {
+import { PubSubAMQPConfig, Exchange } from './interfaces';
 
+export class AMQPPublisher {
+  private connection: amqp.Connection;
+  private exchange: Exchange;
   private channel: amqp.Channel | null = null;
 
   constructor(
-    private connection: amqp.Connection,
+    config: PubSubAMQPConfig,
     private logger: Debug.IDebugger
   ) {
-
+    this.connection = config.connection;
+    this.exchange = {
+      name: 'graphql_subscriptions',
+      type: 'topic',
+      options: {
+        durable: false,
+        autoDelete: false
+      },
+      ...config.exchange
+    };
   }
 
-  public async publish(exchange: string, routingKey: string, data: any): Promise<void> {
+  public async publish(routingKey: string, data: any): Promise<void> {
     const channel = await this.getOrCreateChannel();
-    await channel.assertExchange(exchange, 'topic', { durable: false, autoDelete: false });
-    await channel.publish(exchange, routingKey, Buffer.from(JSON.stringify(data)));
-    this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', exchange, routingKey, data);
+    await channel.assertExchange(this.exchange.name, this.exchange.type, this.exchange.options);
+    await channel.publish(this.exchange.name, routingKey, Buffer.from(JSON.stringify(data)));
+    this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', this.exchange.name, routingKey, data);
   }
 
   private async getOrCreateChannel(): Promise<amqp.Channel> {
