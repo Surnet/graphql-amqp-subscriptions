@@ -32,7 +32,7 @@ export class AMQPPubSub implements PubSubEngine {
     this.publisher = new AMQPPublisher(config, logger);
     this.subscriber = new AMQPSubscriber(config, logger);
 
-    this.exchange = { ...config.exchange };
+    this.exchange = config.exchange || {};
 
     logger('Finished initializing');
   }

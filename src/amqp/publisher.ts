@@ -26,7 +26,7 @@ export class AMQPPublisher {
     await channel.assertExchange(
       this.exchange.name || 'graphql_subscriptions',
       this.exchange.type || 'topic',
-      { ...this.exchange.options }
+      this.exchange.options
     );
     await channel.publish(this.exchange.name || 'graphql_subscriptions', routingKey, Buffer.from(JSON.stringify(data)));
     this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', this.exchange.name, routingKey, data);

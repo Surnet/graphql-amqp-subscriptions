@@ -39,9 +39,9 @@ export class AMQPSubscriber {
     await channel.assertExchange(
       this.exchange.name || 'graphql_subscriptions',
       this.exchange.type || 'topic',
-      { ...this.exchange.options }
+      this.exchange.options
     );
-    const queue = await channel.assertQueue(this.queue.name || '', { ...this.queue.options });
+    const queue = await channel.assertQueue(this.queue.name || '', this.queue.options);
     await channel.bindQueue(queue.queue, this.exchange.name || 'graphql_subscriptions', routingKey);
 
     // Listen for messages
