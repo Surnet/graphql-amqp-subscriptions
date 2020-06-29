@@ -27,7 +27,7 @@ describe('AMQP PubSub', () => {
       queue: {
         options: {
           exclusive: true,
-          durable: true,
+          durable: false,
           autoDelete: true
         }
       }
@@ -40,6 +40,11 @@ describe('AMQP PubSub', () => {
 
   after(async () => {
     return config.connection.close();
+  });
+
+  it('should create new instance of AMQPPubSub class with connection only', () => {
+    const simpleAMQPPubSub = new AMQPPubSub({ connection: config.connection });
+    expect(simpleAMQPPubSub).to.exist;
   });
 
   it('should create new instance of AMQPPubSub class', () => {

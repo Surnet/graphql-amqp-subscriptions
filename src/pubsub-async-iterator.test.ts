@@ -84,7 +84,7 @@ describe('GraphQL-JS asyncIterator', () => {
       queue: {
         options: {
           exclusive: true,
-          durable: true,
+          durable: false,
           autoDelete: true
         }
       }

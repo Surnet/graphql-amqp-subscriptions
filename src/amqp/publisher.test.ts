@@ -23,8 +23,7 @@ describe('AMQP Publisher', () => {
           durable: false,
           autoDelete: true
         }
-      },
-      queue: {}
+      }
     };
   });
 
@@ -32,7 +31,12 @@ describe('AMQP Publisher', () => {
     return config.connection.close();
   });
 
-  it('should create new instance of AMQPPublisher class', () => {
+  it('should create new instance of AMQPPublisher class with connection only', () => {
+    const simplePublisher = new AMQPPublisher({ connection: config.connection }, logger);
+    expect(simplePublisher).to.exist;
+  });
+
+  it('should create new instance of AMQPPublisher class with config', () => {
     publisher = new AMQPPublisher(config, logger);
     expect(publisher).to.exist;
   });
