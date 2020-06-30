@@ -1,21 +1,19 @@
 import { PubSubEngine } from 'graphql-subscriptions';
 import amqp from 'amqplib';
 import Debug from 'debug';
+import { v4 as uuidv4 } from 'uuid';
 
-import { PubSubAMQPOptions } from './interfaces';
 import { AMQPPublisher } from './amqp/publisher';
 import { AMQPSubscriber } from './amqp/subscriber';
+import { Exchange, PubSubAMQPConfig } from './amqp/interfaces';
 import { PubSubAsyncIterator } from './pubsub-async-iterator';
 
 const logger = Debug('AMQPPubSub');
 
 export class AMQPPubSub implements PubSubEngine {
-
-  private connection: amqp.Connection;
-  private exchange: string;
-
   private publisher: AMQPPublisher;
   private subscriber: AMQPSubscriber;
+  private exchange: Exchange;
 
   private subscriptionMap: { [subId: number]: { routingKey: string, listener: Function } };
   private subsRefsMap: { [trigger: string]: Array<number> };
@@ -23,31 +21,41 @@ export class AMQPPubSub implements PubSubEngine {
   private currentSubscriptionId: number;
 
   constructor(
-    options: PubSubAMQPOptions
+    config: PubSubAMQPConfig
   ) {
-    // Setup Variables
-    this.connection = options.connection;
-    this.exchange = options.exchange || 'graphql_subscriptions';
-
     this.subscriptionMap = {};
     this.subsRefsMap = {};
     this.unsubscribeMap = {};
     this.currentSubscriptionId = 0;
 
     // Initialize AMQP Helper
-    this.publisher = new AMQPPublisher(this.connection, logger);
-    this.subscriber = new AMQPSubscriber(this.connection, logger);
+    this.publisher = new AMQPPublisher(config, logger);
+    this.subscriber = new AMQPSubscriber(config, logger);
+
+    this.exchange = {
+      name: 'graphql_subscriptions',
+      type: 'topic',
+      options: {
+        durable: false,
+        autoDelete: false
+      },
+      ...config.exchange
+    };
 
     logger('Finished initializing');
   }
 
   public async publish(routingKey: string, payload: any): Promise<void> {
-    logger('Publishing message to exchange "%s" for key "%s" (%j)', this.exchange, routingKey, payload);
-    return this.publisher.publish(this.exchange, routingKey, payload);
+    logger('Publishing message to exchange "%s" for key "%s" (%j)', this.exchange.name, routingKey, payload);
+    return this.publisher.publish(routingKey, payload);
   }
 
-  public async subscribe(routingKey: string, onMessage: (message: any) => void): Promise<number> {
+  public async subscribe(routingKey: string | 'fanout', onMessage: (message: any) => void): Promise<number> {
     const id = this.currentSubscriptionId++;
+
+    if (routingKey === 'fanout') {
+      routingKey = uuidv4();
+    }
     logger('Subscribing to "%s" with id: "%s"', routingKey, id);
 
     this.subscriptionMap[id] = {
@@ -70,7 +78,7 @@ export class AMQPPubSub implements PubSubEngine {
     const existingDispose = this.unsubscribeMap[routingKey];
     // Get rid of exisiting subscription while we get a new one.
     const [newDispose] = await Promise.all([
-      this.subscriber.subscribe(this.exchange, routingKey, this.onMessage),
+      this.subscriber.subscribe(routingKey, this.onMessage),
       existingDispose ? existingDispose() : Promise.resolve()
     ]);
 

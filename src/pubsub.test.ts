@@ -1,5 +1,6 @@
 /* tslint:disable:no-unused-expression */
 import { AMQPPubSub } from './pubsub';
+import { PubSubAMQPConfig } from './amqp/interfaces';
 import { expect } from 'chai';
 import 'mocha';
 import amqp from 'amqplib';
@@ -7,21 +8,43 @@ import { EventEmitter } from 'events';
 
 type TestData = { test: string };
 
-let conn: amqp.Connection;
 let pubsub: AMQPPubSub;
+let config: PubSubAMQPConfig;
 
 describe('AMQP PubSub', () => {
 
   before(async () => {
-    conn = await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30');
+    config = {
+      connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
+      exchange: {
+        name: 'exchange',
+        type: 'topic',
+        options: {
+          durable: false,
+          autoDelete: true
+        }
+      },
+      queue: {
+        options: {
+          exclusive: true,
+          durable: false,
+          autoDelete: true
+        }
+      }
+    };
   });
 
   beforeEach(() => {
-    pubsub = new AMQPPubSub({ connection: conn });
+    pubsub = new AMQPPubSub(config);
   });
 
   after(async () => {
-    return conn.close();
+    return config.connection.close();
+  });
+
+  it('should create new instance of AMQPPubSub class with connection only', () => {
+    const simpleAMQPPubSub = new AMQPPubSub({ connection: config.connection });
+    expect(simpleAMQPPubSub).to.exist;
   });
 
   it('should create new instance of AMQPPubSub class', () => {

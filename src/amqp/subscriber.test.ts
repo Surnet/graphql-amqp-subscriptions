@@ -1,6 +1,7 @@
 /* tslint:disable:no-unused-expression */
 import { AMQPSubscriber } from './subscriber';
 import { AMQPPublisher } from './publisher';
+import { PubSubAMQPConfig } from './interfaces';
 import { expect } from 'chai';
 import 'mocha';
 import Debug from 'debug';
@@ -16,27 +17,49 @@ type TestData = {
 
 const logger = Debug('AMQPPubSub');
 
-let conn: amqp.Connection;
 let subscriber: AMQPSubscriber;
 let publisher: AMQPPublisher;
+let config: PubSubAMQPConfig;
 
 describe('AMQP Subscriber', () => {
 
   before(async () => {
-    conn = await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30');
+    config = {
+      connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
+      exchange: {
+        name: 'exchange',
+        type: 'topic',
+        options: {
+          durable: false,
+          autoDelete: true
+        }
+      },
+      queue: {
+        options: {
+          exclusive: true,
+          durable: false,
+          autoDelete: true
+        }
+      }
+    };
   });
 
   after(async () => {
-    return conn.close();
+    return config.connection.close();
   });
 
-  it('should create new instance of AMQPSubscriber class', () => {
-    subscriber = new AMQPSubscriber(conn, logger);
+  it('should create new instance of AMQPSubscriber class with connection only', () => {
+    const simpleSubscriber = new AMQPSubscriber({ connection: config.connection }, logger);
+    expect(simpleSubscriber).to.exist;
+  });
+
+  it('should create new instance of AMQPSubscriber class with config', () => {
+    subscriber = new AMQPSubscriber(config, logger);
     expect(subscriber).to.exist;
   });
 
   it('should create new instance of AMQPPublisher class', () => {
-    publisher = new AMQPPublisher(conn, logger);
+    publisher = new AMQPPublisher(config, logger);
     expect(publisher).to.exist;
   });
 
@@ -44,12 +67,12 @@ describe('AMQP Subscriber', () => {
     const emitter = new EventEmitter();
     const msgPromise = new Promise<TestData>((resolve) => { emitter.once('message', resolve); });
 
-    const dispose = await subscriber.subscribe('exchange', '*.test', (routingKey, message) => {
+    const dispose = await subscriber.subscribe('*.test', (routingKey, message) => {
       emitter.emit('message', { routingKey, message });
     });
     expect(dispose).to.exist;
 
-    await publisher.publish('exchange', 'test.test', {test: 'data'});
+    await publisher.publish('test.test', {test: 'data'});
     const { routingKey: key, message: msg } = await msgPromise;
 
     expect(key).to.exist;
@@ -64,7 +87,7 @@ describe('AMQP Subscriber', () => {
     const emitter = new EventEmitter();
     const errPromise = new Promise((_resolve, reject) => { emitter.once('error', reject); });
 
-    const dispose = await subscriber.subscribe('exchange', 'test.test', () => {
+    const dispose = await subscriber.subscribe('test.test', () => {
       emitter.emit('error', new Error('Should not reach'));
     });
 
