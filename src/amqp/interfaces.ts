@@ -1,20 +1,20 @@
-import amqp from 'amqplib';
+import {Options, Connection} from 'amqplib';
 
 export interface Exchange {
   name: string;
   type: string;
-  options?: amqp.Options.AssertExchange;
+  options?: Options.AssertExchange;
 }
 
 export interface Queue {
   name?: string;
-  options?: amqp.Options.AssertQueue;
+  options?: Options.AssertQueue;
   unbindOnDispose?: boolean;
   deleteOnDispose?: boolean;
 }
 
 export interface PubSubAMQPConfig {
-  connection: amqp.Connection;
+  connection: Connection;
   exchange?: Exchange;
   queue?: Queue;
 }
