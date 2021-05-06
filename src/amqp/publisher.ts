@@ -24,10 +24,10 @@ export class AMQPPublisher {
     };
   }
 
-  public async publish(routingKey: string, data: any): Promise<void> {
+  public async publish(routingKey: string, data: any, options?: amqp.Options.Publish): Promise<void> {
     const channel = await this.getOrCreateChannel();
     await channel.assertExchange(this.exchange.name, this.exchange.type, this.exchange.options);
-    await channel.publish(this.exchange.name, routingKey, Buffer.from(JSON.stringify(data)));
+    await channel.publish(this.exchange.name, routingKey, Buffer.from(JSON.stringify(data)), options);
     this.logger('Message sent to Exchange "%s" with Routing Key "%s" (%j)', this.exchange.name, routingKey, data);
   }
 

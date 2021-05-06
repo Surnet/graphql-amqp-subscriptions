@@ -45,12 +45,16 @@ export class AMQPPubSub implements PubSubEngine {
     logger('Finished initializing');
   }
 
-  public async publish(routingKey: string, payload: any): Promise<void> {
+  public async publish(routingKey: string, payload: any, options?: amqp.Options.Publish): Promise<void> {
     logger('Publishing message to exchange "%s" for key "%s" (%j)', this.exchange.name, routingKey, payload);
-    return this.publisher.publish(routingKey, payload);
+    return this.publisher.publish(routingKey, payload, options);
   }
 
-  public async subscribe(routingKey: string | 'fanout', onMessage: (message: any) => void): Promise<number> {
+  public async subscribe(
+    routingKey: string | 'fanout',
+    onMessage: (message: any) => void,
+    options?: amqp.Options.Consume
+  ): Promise<number> {
     const id = this.currentSubscriptionId++;
 
     if (routingKey === 'fanout') {
@@ -78,7 +82,7 @@ export class AMQPPubSub implements PubSubEngine {
     const existingDispose = this.unsubscribeMap[routingKey];
     // Get rid of exisiting subscription while we get a new one.
     const [newDispose] = await Promise.all([
-      this.subscriber.subscribe(routingKey, this.onMessage),
+      this.subscriber.subscribe(routingKey, this.onMessage, options),
       existingDispose ? existingDispose() : Promise.resolve()
     ]);
 

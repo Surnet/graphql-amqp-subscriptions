@@ -36,7 +36,8 @@ export class AMQPSubscriber {
 
   public async subscribe(
     routingKey: string,
-    action: (routingKey: string, message: any) => void
+    action: (routingKey: string, message: any) => void,
+    options?: amqp.Options.Consume
   ): Promise<() => Promise<void>> {
     // Create and bind queue
     const channel = await this.getOrCreateChannel();
@@ -49,7 +50,7 @@ export class AMQPSubscriber {
       let parsedMessage = Logger.convertMessage(msg);
       this.logger('Message arrived from Queue "%s" (%j)', queue.queue, parsedMessage);
       action(routingKey, parsedMessage);
-    }, {noAck: true});
+    }, { noAck: true, ...options });
     this.logger('Subscribed to Queue "%s" (%s)', queue.queue, opts.consumerTag);
 
     // Dispose callback
