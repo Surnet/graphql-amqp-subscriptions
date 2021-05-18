@@ -2,6 +2,7 @@
 import { AMQPSubscriber } from './subscriber';
 import { AMQPPublisher } from './publisher';
 import { PubSubAMQPConfig } from './interfaces';
+import { Common } from './common';
 import { expect } from 'chai';
 import 'mocha';
 import Debug from 'debug';
@@ -10,9 +11,10 @@ import { EventEmitter } from 'events';
 
 type TestData = {
   routingKey: string,
-  message: {
+  content: {
     test: string
-  }
+  },
+  message: amqp.ConsumeMessage
 };
 
 const logger = Debug('AMQPPubSub');
@@ -67,18 +69,49 @@ describe('AMQP Subscriber', () => {
     const emitter = new EventEmitter();
     const msgPromise = new Promise<TestData>((resolve) => { emitter.once('message', resolve); });
 
-    const dispose = await subscriber.subscribe('*.test', (routingKey, message) => {
-      emitter.emit('message', { routingKey, message });
+    const dispose = await subscriber.subscribe('*.test', (routingKey, content) => {
+      emitter.emit('message', { routingKey, content });
     });
     expect(dispose).to.exist;
 
     await publisher.publish('test.test', {test: 'data'});
-    const { routingKey: key, message: msg } = await msgPromise;
+    const { routingKey: key, content: msg } = await msgPromise;
 
     expect(key).to.exist;
     expect(msg).to.exist;
     expect(msg.test).to.exist;
     expect(msg.test).to.equal('data');
+
+    return dispose();
+  });
+
+  it('should be able to receive a message through an exchange with header information', async () => {
+    const emitter = new EventEmitter();
+    const msgPromise = new Promise<TestData>((resolve) => { emitter.once('message', resolve); });
+
+    const dispose = await subscriber.subscribe('*.test', (routingKey, content, message) => {
+      emitter.emit('message', { routingKey, content, message });
+    });
+    expect(dispose).to.exist;
+
+    await publisher.publish('test.test', {test: 'data'}, { contentType: 'file', headers: { key: 'value' }});
+    const { routingKey: key, content: msg, message: rawMsg } = await msgPromise;
+
+    expect(key).to.exist;
+    expect(msg).to.exist;
+    expect(msg.test).to.exist;
+    expect(msg.test).to.equal('data');
+    expect(rawMsg).to.exist;
+    const converted = Common.convertMessage(rawMsg);
+    expect(converted).to.exist;
+    expect(converted.test).to.exist;
+    expect(converted.test).to.equal('data');
+    expect(rawMsg.properties).to.exist;
+    expect(rawMsg.properties.contentType).to.exist;
+    expect(rawMsg.properties.contentType).to.equal('file');
+    expect(rawMsg.properties.headers).to.exist;
+    expect(rawMsg.properties.headers.key).to.exist;
+    expect(rawMsg.properties.headers.key).to.equal('value');
 
     return dispose();
   });

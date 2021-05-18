@@ -7,6 +7,12 @@ import amqp from 'amqplib';
 import { EventEmitter } from 'events';
 
 type TestData = { test: string };
+type TestDataDetail = {
+  content: {
+    test: string
+  },
+  message: amqp.ConsumeMessage
+};
 
 let pubsub: AMQPPubSub;
 let config: PubSubAMQPConfig;
@@ -66,6 +72,30 @@ describe('AMQP PubSub', () => {
 
     expect(msg).to.exist;
     expect(msg.test).to.equal('data');
+  });
+
+  it('should be able to receive a raw message with the appropriate routingKey', async () => {
+    const emitter = new EventEmitter();
+    const msgPromise = new Promise<TestDataDetail>((resolve) => { emitter.once('message', resolve); });
+
+    const subscriberId = await pubsub.subscribe('testheader.*', (content, message) => {
+      emitter.emit('message', { content, message });
+    });
+    expect(subscriberId).to.exist;
+    expect(isNaN(subscriberId)).to.equal(false);
+
+    await pubsub.publish('testheader.test', {test: 'data'}, { contentType: 'file', headers: { key: 'value' }});
+    const { content: msg, message: rawMsg } = await msgPromise;
+
+    expect(msg).to.exist;
+    expect(msg.test).to.equal('data');
+    expect(rawMsg).to.exist;
+    expect(rawMsg.properties).to.exist;
+    expect(rawMsg.properties.contentType).to.exist;
+    expect(rawMsg.properties.contentType).to.equal('file');
+    expect(rawMsg.properties.headers).to.exist;
+    expect(rawMsg.properties.headers.key).to.exist;
+    expect(rawMsg.properties.headers.key).to.equal('value');
   });
 
   it('should be able to unsubscribe', async () => {

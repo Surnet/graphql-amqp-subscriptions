@@ -1,7 +1,7 @@
 import amqp from 'amqplib';
 import Debug from 'debug';
 
-import { Logger } from './common';
+import { Common } from './common';
 import { PubSubAMQPConfig, Exchange, Queue } from './interfaces';
 
 export class AMQPSubscriber {
@@ -36,20 +36,22 @@ export class AMQPSubscriber {
 
   public async subscribe(
     routingKey: string,
-    action: (routingKey: string, message: any) => void
+    action: (routingKey: string, content: any, message: amqp.ConsumeMessage | null) => void,
+    args?: any,
+    options?: amqp.Options.Consume
   ): Promise<() => Promise<void>> {
     // Create and bind queue
     const channel = await this.getOrCreateChannel();
     await channel.assertExchange(this.exchange.name, this.exchange.type, this.exchange.options);
     const queue = await channel.assertQueue(this.queue.name || '', this.queue.options);
-    await channel.bindQueue(queue.queue, this.exchange.name, routingKey);
+    await channel.bindQueue(queue.queue, this.exchange.name, routingKey, args);
 
     // Listen for messages
     const opts = await channel.consume(queue.queue, (msg) => {
-      let parsedMessage = Logger.convertMessage(msg);
-      this.logger('Message arrived from Queue "%s" (%j)', queue.queue, parsedMessage);
-      action(routingKey, parsedMessage);
-    }, {noAck: true});
+      let content = Common.convertMessage(msg);
+      this.logger('Message arrived from Queue "%s" (%j)', queue.queue, content);
+      action(routingKey, content, msg);
+    }, { noAck: true, ...options });
     this.logger('Subscribed to Queue "%s" (%s)', queue.queue, opts.consumerTag);
 
     // Dispose callback
