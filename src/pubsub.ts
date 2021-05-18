@@ -52,7 +52,8 @@ export class AMQPPubSub implements PubSubEngine {
 
   public async subscribe(
     routingKey: string | 'fanout',
-    onMessage: (message: any) => void,
+    onMessage: (content: any, message?: amqp.ConsumeMessage | null) => void,
+    args?: any,
     options?: amqp.Options.Consume
   ): Promise<number> {
     const id = this.currentSubscriptionId++;
@@ -82,7 +83,7 @@ export class AMQPPubSub implements PubSubEngine {
     const existingDispose = this.unsubscribeMap[routingKey];
     // Get rid of exisiting subscription while we get a new one.
     const [newDispose] = await Promise.all([
-      this.subscriber.subscribe(routingKey, this.onMessage, options),
+      this.subscriber.subscribe(routingKey, this.onMessage, args, options),
       existingDispose ? existingDispose() : Promise.resolve()
     ]);
 
@@ -121,7 +122,7 @@ export class AMQPPubSub implements PubSubEngine {
     return new PubSubAsyncIterator<T>(this, triggers);
   }
 
-  private onMessage = (routingKey: string, message: any): void => {
+  private onMessage = (routingKey: string, content: any, message: amqp.ConsumeMessage | null): void => {
     const subscribers = this.subsRefsMap[routingKey];
 
     // Don't work for nothing...
@@ -134,7 +135,7 @@ export class AMQPPubSub implements PubSubEngine {
     }
 
     for (const subId of subscribers) {
-      this.subscriptionMap[subId].listener(message);
+      this.subscriptionMap[subId].listener(content, message);
     }
   }
 

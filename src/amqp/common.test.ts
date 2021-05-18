@@ -1,12 +1,12 @@
 /* tslint:disable:no-unused-expression */
-import { Logger } from './common';
+import { Common } from './common';
 import { expect } from 'chai';
 import 'mocha';
 
 describe('Common', () => {
 
   it('should convert a string to a string', () => {
-    const message = Logger.convertMessage({
+    const message = Common.convertMessage({
       fields: {
         deliveryTag: 1,
         redelivered: false,
@@ -36,7 +36,7 @@ describe('Common', () => {
   });
 
   it('should convert a stringified JSON to a JSON', () => {
-    const message = Logger.convertMessage({
+    const message = Common.convertMessage({
       fields: {
         deliveryTag: 1,
         redelivered: false,

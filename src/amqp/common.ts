@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 
-export class Logger {
+export class Common {
 
     public static convertMessage(msg: amqp.ConsumeMessage | null): any {
       let res: any = null;
