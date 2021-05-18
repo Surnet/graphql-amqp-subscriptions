@@ -49,4 +49,11 @@ describe('AMQP Publisher', () => {
     return publisher.publish('test.test', {test: 'data'});
   });
 
+  it('should publish a message to an exchange with options', async () => {
+    return publisher.publish('test.test', {test: 'data'}, {
+      contentType: 'file',
+      headers: { key: 'value' }
+    });
+  });
+
 });
