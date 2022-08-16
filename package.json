@@ -69,7 +69,7 @@
   },
   "peerDependencies": {
     "amqplib": "0.x",
-    "graphql": "14.x || 15.x"
+    "graphql": "14.x || 15.x || 16.x"
   },
   "mocha": {
     "recursive": true,
