@@ -5,6 +5,7 @@ import { PubSubEngine } from 'graphql-subscriptions';
  * A class for digesting PubSubEngine events via the new AsyncIterator interface.
  * This implementation is a generic version of the one located at
  * https://github.com/apollographql/graphql-subscriptions/blob/master/src/event-emitter-to-async-iterator.ts
+ *
  * @class
  *
  * @constructor
@@ -39,7 +40,7 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
   private listening: boolean;
   private pubsub: PubSubEngine;
 
-  constructor(pubsub: PubSubEngine, eventNames: string | string[]) {
+  public constructor(pubsub: PubSubEngine, eventNames: string | string[]) {
     this.pubsub = pubsub;
     this.pullQueue = [];
     this.pushQueue = [];
