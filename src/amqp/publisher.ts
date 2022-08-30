@@ -8,7 +8,7 @@ export class AMQPPublisher {
   private exchange: Exchange;
   private channel: amqp.Channel | null = null;
 
-  constructor(
+  public constructor(
     config: PubSubAMQPConfig,
     private logger: Debug.IDebugger
   ) {
@@ -34,7 +34,9 @@ export class AMQPPublisher {
   private async getOrCreateChannel(): Promise<amqp.Channel> {
     if (!this.channel) {
       this.channel = await this.connection.createChannel();
-      this.channel.on('error', (err) => { this.logger('Publisher channel error: "%j"', err); });
+      this.channel.on('error', (err) => {
+        this.logger('Publisher channel error: "%j"', err);
+      });
     }
     return this.channel;
   }

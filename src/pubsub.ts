@@ -15,12 +15,12 @@ export class AMQPPubSub implements PubSubEngine {
   private subscriber: AMQPSubscriber;
   private exchange: Exchange;
 
-  private subscriptionMap: { [subId: number]: { routingKey: string, listener: Function } };
+  private subscriptionMap: { [subId: number]: { routingKey: string; listener: Function } };
   private subsRefsMap: { [trigger: string]: Array<number> };
   private unsubscribeMap: { [trigger: string]: () => PromiseLike<any> };
   private currentSubscriptionId: number;
 
-  constructor(
+  public constructor(
     config: PubSubAMQPConfig
   ) {
     this.subscriptionMap = {};
@@ -137,7 +137,7 @@ export class AMQPPubSub implements PubSubEngine {
     for (const subId of subscribers) {
       this.subscriptionMap[subId].listener(content, message);
     }
-  }
+  };
 
   private async unsubscribeForKey(routingKey: string): Promise<void> {
     const dispose = this.unsubscribeMap[routingKey];

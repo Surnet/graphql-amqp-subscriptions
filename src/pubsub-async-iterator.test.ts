@@ -97,7 +97,7 @@ describe('GraphQL-JS asyncIterator', () => {
   });
 
   it('should allow subscriptions', async () => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
@@ -106,7 +106,7 @@ describe('GraphQL-JS asyncIterator', () => {
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator);
 
-    const results = await subscribe(schema, query) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
     const payload1 = results.next();
 
     expect(isAsyncIterable(results)).to.be.true;
@@ -123,7 +123,7 @@ describe('GraphQL-JS asyncIterator', () => {
   });
 
   it('should allow async filter', async () => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
@@ -132,7 +132,7 @@ describe('GraphQL-JS asyncIterator', () => {
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator, () => Promise.resolve(true));
 
-    const results = await subscribe(schema, query) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
     const payload1 = results.next();
 
     expect(isAsyncIterable(results)).to.be.true;
@@ -149,7 +149,7 @@ describe('GraphQL-JS asyncIterator', () => {
   });
 
   it('should detect when the payload is done when filtering', (done) => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
@@ -174,7 +174,7 @@ describe('GraphQL-JS asyncIterator', () => {
 
     const schema = buildSchema(origIterator, filterFn);
 
-    Promise.resolve(subscribe(schema, query)).then((results: AsyncIterator<ExecutionResult> | ExecutionResult) => {
+    Promise.resolve(subscribe({ document, schema })).then((results: AsyncIterator<ExecutionResult> | ExecutionResult) => {
       expect(isAsyncIterable(results)).to.be.true;
       results = <AsyncIterator<ExecutionResult>>results;
 
@@ -192,7 +192,7 @@ describe('GraphQL-JS asyncIterator', () => {
   });
 
   it('should clear event handlers', async () => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
@@ -203,7 +203,7 @@ describe('GraphQL-JS asyncIterator', () => {
     const returnSpy = spy(origIterator, 'return');
     const schema = buildSchema(origIterator);
 
-    const results = await subscribe(schema, query) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
     const end = results.return!();
 
     const r = end.then(() => {
