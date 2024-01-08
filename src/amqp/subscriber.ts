@@ -10,10 +10,7 @@ export class AMQPSubscriber {
   private queue: Queue;
   private channel: amqp.Channel | null = null;
 
-  public constructor(
-    config: PubSubAMQPConfig,
-    private logger: Debug.IDebugger
-  ) {
+  constructor(config: PubSubAMQPConfig, private logger: Debug.IDebugger) {
     this.connection = config.connection;
     this.exchange = {
       name: 'graphql_subscriptions',

@@ -1,6 +1,6 @@
 {
   "hooks": {
-    "before:init": "npm install && npm run build"
+    "before:init": "npm ci && npm run build && node bin/prepublish.js"
   },
   "git": {
     "requireCleanWorkingDir": false,
@@ -11,5 +11,8 @@
   },
   "github": {
     "release": true
+  },
+  "npm": {
+    "publishPath": "/lib"
   }
 }

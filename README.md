@@ -71,5 +71,5 @@ docker run --hostname my-rabbit -p 5672:5672 rabbitmq:3
 Then
 
 ```bash
-npm test
+npm run test
 ```

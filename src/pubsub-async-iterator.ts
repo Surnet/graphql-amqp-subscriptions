@@ -39,7 +39,7 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
   private listening: boolean;
   private pubsub: PubSubEngine;
 
-  public constructor(pubsub: PubSubEngine, eventNames: string | string[]) {
+  constructor(pubsub: PubSubEngine, eventNames: string | string[]) {
     this.pubsub = pubsub;
     this.pullQueue = [];
     this.pushQueue = [];

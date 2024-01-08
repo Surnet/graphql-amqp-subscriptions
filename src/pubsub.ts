@@ -20,7 +20,7 @@ export class AMQPPubSub implements PubSubEngine {
   private unsubscribeMap: { [trigger: string]: () => PromiseLike<any> };
   private currentSubscriptionId: number;
 
-  public constructor(config: PubSubAMQPConfig) {
+  constructor(config: PubSubAMQPConfig) {
     this.subscriptionMap = {};
     this.subsRefsMap = {};
     this.unsubscribeMap = {};

@@ -25,16 +25,16 @@
     "rabbitmq",
     "rabbit"
   ],
-  "main": "lib/index.js",
   "scripts": {
     "start": "nodemon --ext js,ts,tsx,json --exec ts-node -- src/index.ts --extensions \".ts,.tsx\" --source-maps inline",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
-    "build": "tsc",
+    "build": "rimraf lib && tsc --project tsconfig.build.json",
     "vulnerabilities": "npm audit",
     "check-updates": "npm outdated",
     "lint": "eslint . --ext .ts",
     "test": "jest --coverage",
+    "prepublishOnly": "echo \"use 'npm run release'\" && exit 1",
     "release": "release-it"
   },
   "dependencies": {
@@ -64,6 +64,7 @@
     "jest": "29.7.0",
     "nodemon": "3.0.2",
     "release-it": "17.0.1",
+    "rimraf": "5.0.5",
     "ts-node": "10.9.2",
     "typescript": "5.3.3"
   }
