@@ -1,5 +1,5 @@
 import { $$asyncIterator } from 'iterall';
-import { PubSubEngine } from 'graphql-subscriptions';
+import { type PubSubEngine } from 'graphql-subscriptions';
 
 /**
  * A class for digesting PubSubEngine events via the new AsyncIterator interface.

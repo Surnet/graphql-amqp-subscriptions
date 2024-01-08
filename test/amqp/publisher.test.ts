@@ -1,17 +1,16 @@
+import amqp from 'amqplib';
+import Debug from 'debug';
+import { beforeAll, afterAll, expect } from '@jest/globals';
+
 import { AMQPPublisher } from '../../src/amqp/publisher';
 import { PubSubAMQPConfig } from '../../src/amqp/interfaces';
-import { expect } from 'chai';
-import 'mocha';
-import Debug from 'debug';
-import amqp from 'amqplib';
-
-const logger = Debug('AMQPPubSub');
-
-let publisher: AMQPPublisher;
-let config: PubSubAMQPConfig;
 
 describe('AMQP Publisher', () => {
-  before(async () => {
+  const logger = Debug('AMQPPubSub');
+  let publisher: AMQPPublisher;
+  let config: PubSubAMQPConfig;
+
+  beforeAll(async () => {
     config = {
       connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
       exchange: {
@@ -25,18 +24,22 @@ describe('AMQP Publisher', () => {
     };
   });
 
-  after(async () => {
+  afterAll(async () => {
     return config.connection.close();
   });
 
   it('should create new instance of AMQPPublisher class with connection only', () => {
     const simplePublisher = new AMQPPublisher({ connection: config.connection }, logger);
-    expect(simplePublisher).to.exist;
+
+    expect(simplePublisher).not.toBeNull();
+    expect(simplePublisher).not.toBeUndefined();
   });
 
   it('should create new instance of AMQPPublisher class with config', () => {
     publisher = new AMQPPublisher(config, logger);
-    expect(publisher).to.exist;
+
+    expect(publisher).not.toBeNull();
+    expect(publisher).not.toBeUndefined();
   });
 
   it('should publish a message to an exchange', async () => {

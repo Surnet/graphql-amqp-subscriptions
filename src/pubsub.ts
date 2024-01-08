@@ -1,4 +1,4 @@
-import { PubSubEngine } from 'graphql-subscriptions';
+import { type PubSubEngine } from 'graphql-subscriptions';
 import amqp, { ConsumeMessage } from 'amqplib';
 import Debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';

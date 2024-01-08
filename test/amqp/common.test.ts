@@ -1,5 +1,4 @@
-import { expect } from 'chai';
-import 'mocha';
+import { expect } from '@jest/globals';
 
 import { Common } from '../../src/amqp/common';
 
@@ -31,8 +30,10 @@ describe('Common', () => {
       },
       content: Buffer.from('test')
     });
-    expect(message).to.exist;
-    expect(message).to.equal('test');
+
+    expect(message).not.toBeNull();
+    expect(message).not.toBeUndefined();
+    expect(message).toEqual('test');
   });
 
   it('should convert a stringified JSON to a JSON', () => {
@@ -62,7 +63,9 @@ describe('Common', () => {
       },
       content: Buffer.from('{"test":"data"}')
     });
-    expect(message).to.exist;
-    expect(message.test).to.equal('data');
+
+    expect(message).not.toBeNull();
+    expect(message).not.toBeUndefined();
+    expect(message.test).toEqual('data');
   });
 });
