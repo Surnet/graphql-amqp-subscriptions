@@ -1,5 +1,5 @@
 import { PubSubEngine } from 'graphql-subscriptions';
-import amqp from 'amqplib';
+import amqp, { ConsumeMessage } from 'amqplib';
 import Debug from 'debug';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -15,14 +15,12 @@ export class AMQPPubSub implements PubSubEngine {
   private subscriber: AMQPSubscriber;
   private exchange: Exchange;
 
-  private subscriptionMap: { [subId: number]: { routingKey: string; listener: Function } };
+  private subscriptionMap: { [subId: number]: { routingKey: string; listener: (content: any, message: ConsumeMessage | null) => any } };
   private subsRefsMap: { [trigger: string]: Array<number> };
   private unsubscribeMap: { [trigger: string]: () => PromiseLike<any> };
   private currentSubscriptionId: number;
 
-  public constructor(
-    config: PubSubAMQPConfig
-  ) {
+  public constructor(config: PubSubAMQPConfig) {
     this.subscriptionMap = {};
     this.subsRefsMap = {};
     this.unsubscribeMap = {};
@@ -127,8 +125,7 @@ export class AMQPPubSub implements PubSubEngine {
 
     // Don't work for nothing...
     if (!subscribers || !subscribers.length) {
-      this.unsubscribeForKey(routingKey)
-      .catch((err) => {
+      this.unsubscribeForKey(routingKey).catch((err) => {
         logger('onMessage unsubscribeForKey error "%j", Routing Key "%s"', err, routingKey);
       });
       return;
@@ -145,5 +142,4 @@ export class AMQPPubSub implements PubSubEngine {
     delete this.subsRefsMap[routingKey];
     await dispose();
   }
-
 }

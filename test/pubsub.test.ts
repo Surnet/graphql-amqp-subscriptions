@@ -1,10 +1,10 @@
-/* tslint:disable:no-unused-expression */
-import { AMQPPubSub } from './pubsub';
-import { PubSubAMQPConfig } from './amqp/interfaces';
-import { expect } from 'chai';
 import 'mocha';
 import amqp from 'amqplib';
 import { EventEmitter } from 'events';
+import { expect } from 'chai';
+
+import { AMQPPubSub } from '../src';
+import { PubSubAMQPConfig } from '../src/amqp/interfaces';
 
 type TestData = { test: string };
 type TestDataDetail = {
@@ -18,7 +18,6 @@ let pubsub: AMQPPubSub;
 let config: PubSubAMQPConfig;
 
 describe('AMQP PubSub', () => {
-
   before(async () => {
     config = {
       connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
@@ -213,5 +212,4 @@ describe('AMQP PubSub', () => {
     expect(msg).to.exist;
     expect(msg.test).to.equal('1337');
   });
-
 });

@@ -1,17 +1,17 @@
-/* tslint:disable:no-unused-expression */
-import { Common } from './common';
 import { expect } from 'chai';
 import 'mocha';
 
-describe('Common', () => {
+import { Common } from '../../src/amqp/common';
 
+describe('Common', () => {
   it('should convert a string to a string', () => {
     const message = Common.convertMessage({
       fields: {
         deliveryTag: 1,
         redelivered: false,
         exchange: 'exchange',
-        routingKey: 'test.test'
+        routingKey: 'test.test',
+        consumerTag: 'test.tag'
       },
       properties: {
         contentType: undefined,
@@ -41,7 +41,8 @@ describe('Common', () => {
         deliveryTag: 1,
         redelivered: false,
         exchange: 'exchange',
-        routingKey: 'test.test'
+        routingKey: 'test.test',
+        consumerTag: 'test.tag'
       },
       properties: {
         contentType: undefined,
@@ -64,5 +65,4 @@ describe('Common', () => {
     expect(message).to.exist;
     expect(message.test).to.equal('data');
   });
-
 });

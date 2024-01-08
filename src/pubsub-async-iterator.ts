@@ -32,8 +32,7 @@ import { PubSubEngine } from 'graphql-subscriptions';
  * The PubSubEngine whose events will be observed.
  */
 export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
-
-  private pullQueue: Function[];
+  private pullQueue: Array<(...data: any[]) => any>;
   private pushQueue: any[];
   private eventsArray: string[];
   private allSubscribed: Promise<number[]>;
@@ -71,7 +70,7 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
   private async pushValue(event: any) {
     await this.allSubscribed;
     if (this.pullQueue.length !== 0) {
-      let element = this.pullQueue.shift();
+      const element = this.pullQueue.shift();
       if (element) {
         element({ value: event, done: false });
       }
@@ -111,5 +110,4 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
       this.pubsub.unsubscribe(subscriptionId);
     }
   }
-
 }

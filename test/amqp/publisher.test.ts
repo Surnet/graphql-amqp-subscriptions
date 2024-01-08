@@ -1,6 +1,5 @@
-/* tslint:disable:no-unused-expression */
-import { AMQPPublisher } from './publisher';
-import { PubSubAMQPConfig } from './interfaces';
+import { AMQPPublisher } from '../../src/amqp/publisher';
+import { PubSubAMQPConfig } from '../../src/amqp/interfaces';
 import { expect } from 'chai';
 import 'mocha';
 import Debug from 'debug';
@@ -12,7 +11,6 @@ let publisher: AMQPPublisher;
 let config: PubSubAMQPConfig;
 
 describe('AMQP Publisher', () => {
-
   before(async () => {
     config = {
       connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
@@ -55,5 +53,4 @@ describe('AMQP Publisher', () => {
       headers: { key: 'value' }
     });
   });
-
 });

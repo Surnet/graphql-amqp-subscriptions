@@ -1,13 +1,13 @@
-/* tslint:disable:no-unused-expression */
-import { AMQPSubscriber } from './subscriber';
-import { AMQPPublisher } from './publisher';
-import { PubSubAMQPConfig } from './interfaces';
-import { Common } from './common';
 import { expect } from 'chai';
 import 'mocha';
 import Debug from 'debug';
 import amqp from 'amqplib';
 import { EventEmitter } from 'events';
+
+import { AMQPSubscriber } from '../../src/amqp/subscriber';
+import { AMQPPublisher } from '../../src/amqp/publisher';
+import { PubSubAMQPConfig } from '../../src/amqp/interfaces';
+import { Common } from '../../src/amqp/common';
 
 type TestData = {
   routingKey: string,
@@ -24,7 +24,6 @@ let publisher: AMQPPublisher;
 let config: PubSubAMQPConfig;
 
 describe('AMQP Subscriber', () => {
-
   before(async () => {
     config = {
       connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
@@ -129,5 +128,4 @@ describe('AMQP Subscriber', () => {
       errPromise
     ]);
   });
-
 });

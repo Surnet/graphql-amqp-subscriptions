@@ -1,16 +1,14 @@
-// chai style expect().to.be.true  violates no-unused-expression
-/* tslint:disable:no-unused-expression */
+import amqp from 'amqplib';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { spy } from 'sinon';
 import sinonChai from 'sinon-chai';
-
-import { isAsyncIterable } from 'iterall';
-import { AMQPPubSub as PubSub } from './pubsub';
-import { withFilter, FilterFn } from 'graphql-subscriptions';
 import { ExecutionResult } from 'graphql';
-import { PubSubAMQPConfig } from './amqp/interfaces';
-import amqp from 'amqplib';
+import { isAsyncIterable } from 'iterall';
+import { spy } from 'sinon';
+import { withFilter, FilterFn } from 'graphql-subscriptions';
+
+import { AMQPPubSub } from '../src';
+import { PubSubAMQPConfig } from '../src/amqp/interfaces';
 
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -102,7 +100,7 @@ describe('GraphQL-JS asyncIterator', () => {
         testSubscription
       }
     `);
-    const pubsub = new PubSub(config);
+    const pubsub = new AMQPPubSub(config);
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator);
 
@@ -128,7 +126,7 @@ describe('GraphQL-JS asyncIterator', () => {
         testSubscription
       }
     `);
-    const pubsub = new PubSub(config);
+    const pubsub = new AMQPPubSub(config);
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator, () => Promise.resolve(true));
 
@@ -155,7 +153,7 @@ describe('GraphQL-JS asyncIterator', () => {
       }
     `);
 
-    const pubsub = new PubSub(config);
+    const pubsub = new AMQPPubSub(config);
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
 
     let counter = 0;
@@ -185,7 +183,7 @@ describe('GraphQL-JS asyncIterator', () => {
         pubsub.publish(FIRST_EVENT, {});
       }, 100);
 
-      setTimeout(_ => {
+      setTimeout(() => {
         done();
       }, 500);
     });
@@ -198,8 +196,8 @@ describe('GraphQL-JS asyncIterator', () => {
       }
     `);
 
-    const pubsub = new PubSub(config);
-    const origIterator = pubsub.asyncIterator(FIRST_EVENT);
+    const pubSub = new AMQPPubSub(config);
+    const origIterator = pubSub.asyncIterator(FIRST_EVENT);
     const returnSpy = spy(origIterator, 'return');
     const schema = buildSchema(origIterator);
 
@@ -210,9 +208,8 @@ describe('GraphQL-JS asyncIterator', () => {
       expect(returnSpy).to.have.been.called;
     });
 
-    pubsub.publish(FIRST_EVENT, {});
+    void pubSub.publish(FIRST_EVENT, {});
 
     return r;
   });
-
 });

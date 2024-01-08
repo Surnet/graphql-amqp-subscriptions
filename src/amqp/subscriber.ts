@@ -48,7 +48,7 @@ export class AMQPSubscriber {
 
     // Listen for messages
     const opts = await channel.consume(queue.queue, (msg) => {
-      let content = Common.convertMessage(msg);
+      const content = Common.convertMessage(msg);
       this.logger('Message arrived from Queue "%s" (%j)', queue.queue, content);
       action(routingKey, content, msg);
     }, { noAck: true, ...options });
