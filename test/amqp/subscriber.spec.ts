@@ -50,22 +50,19 @@ describe('AMQP Subscriber', () => {
   it('should create new instance of AMQPSubscriber class with connection only', () => {
     const simpleSubscriber = new AMQPSubscriber({ connection: config.connection }, logger);
 
-    expect(simpleSubscriber).not.toBeNull();
-    expect(simpleSubscriber).not.toBeUndefined();
+    expect(simpleSubscriber).toBeDefined();
   });
 
   it('should create new instance of AMQPSubscriber class with config', () => {
     subscriber = new AMQPSubscriber(config, logger);
 
-    expect(subscriber).not.toBeNull();
-    expect(subscriber).not.toBeUndefined();
+    expect(subscriber).toBeDefined();
   });
 
   it('should create new instance of AMQPPublisher class', () => {
     publisher = new AMQPPublisher(config, logger);
 
-    expect(publisher).not.toBeNull();
-    expect(publisher).not.toBeUndefined();
+    expect(publisher).toBeDefined();
   });
 
   it('should be able to receive a message through an exchange', async () => {
@@ -78,18 +75,14 @@ describe('AMQP Subscriber', () => {
       emitter.emit('message', { routingKey, content });
     });
 
-    expect(dispose).not.toBeNull();
-    expect(dispose).not.toBeUndefined();
+    expect(dispose).toBeDefined();
 
     await publisher.publish('test.test', { test: 'data' });
     const { routingKey: key, content: message } = await messagePromise;
 
-    expect(key).not.toBeNull();
-    expect(key).not.toBeUndefined();
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
-    expect(message.test).not.toBeNull();
-    expect(message.test).not.toBeUndefined();
+    expect(key).toBeDefined();
+    expect(message).toBeDefined();
+    expect(message.test).toBeDefined();
     expect(message.test).toEqual('data');
 
     return dispose();
@@ -104,37 +97,26 @@ describe('AMQP Subscriber', () => {
     const dispose = await subscriber.subscribe('*.test', (routingKey, content, message) => {
       emitter.emit('message', { routingKey, content, message });
     });
-    expect(dispose).not.toBeNull();
-    expect(dispose).not.toBeUndefined();
+    expect(dispose).toBeDefined();
 
     await publisher.publish('test.test', { test: 'data' }, { contentType: 'file', headers: { key: 'value' } });
     const { routingKey: key, content: message, message: rawMessage } = await messagePromise;
 
-    expect(key).not.toBeNull();
-    expect(key).not.toBeUndefined();
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
-    expect(message.test).not.toBeNull();
-    expect(message.test).not.toBeUndefined();
+    expect(key).toBeDefined();
+    expect(message).toBeDefined();
+    expect(message.test).toBeDefined();
     expect(message.test).toEqual('data');
-    expect(rawMessage).not.toBeNull();
-    expect(rawMessage).not.toBeUndefined();
+    expect(rawMessage).toBeDefined();
 
     const converted = Common.convertMessage(rawMessage);
-    expect(converted).not.toBeNull();
-    expect(converted).not.toBeUndefined();
-    expect(converted.test).not.toBeNull();
-    expect(converted.test).not.toBeUndefined();
+    expect(converted).toBeDefined();
+    expect(converted.test).toBeDefined();
     expect(converted.test).toEqual('data');
-    expect(rawMessage.properties).not.toBeNull();
-    expect(rawMessage.properties).not.toBeUndefined();
-    expect(rawMessage.properties.contentType).not.toBeNull();
-    expect(rawMessage.properties.contentType).not.toBeUndefined();
+    expect(rawMessage.properties).toBeDefined();
+    expect(rawMessage.properties.contentType).toBeDefined();
     expect(rawMessage.properties.contentType).toEqual('file');
-    expect(rawMessage.properties.headers).not.toBeNull();
-    expect(rawMessage.properties.headers).not.toBeUndefined();
-    expect(rawMessage.properties.headers.key).not.toBeNull();
-    expect(rawMessage.properties.headers.key).not.toBeUndefined();
+    expect(rawMessage.properties.headers).toBeDefined();
+    expect(rawMessage.properties.headers.key).toBeDefined();
     expect(rawMessage.properties.headers.key).toEqual('value');
 
     return dispose();

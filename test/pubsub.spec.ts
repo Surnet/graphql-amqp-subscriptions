@@ -49,13 +49,11 @@ describe('AMQP PubSub', () => {
   it('should create new instance of AMQPPubSub class with connection only', () => {
     const simpleAMQPPubSub = new AMQPPubSub({ connection: config.connection });
 
-    expect(simpleAMQPPubSub).not.toBeNull();
-    expect(simpleAMQPPubSub).not.toBeUndefined();
+    expect(simpleAMQPPubSub).toBeDefined();
   });
 
   it('should create new instance of AMQPPubSub class', () => {
-    expect(pubsub).not.toBeNull();
-    expect(pubsub).not.toBeUndefined();
+    expect(pubsub).toBeDefined();
   });
 
   it('should be able to receive a message with the appropriate routingKey', async () => {
@@ -68,15 +66,13 @@ describe('AMQP PubSub', () => {
       emitter.emit('message', message);
     });
 
-    expect(subscriberId).not.toBeNull();
-    expect(subscriberId).not.toBeUndefined();
+    expect(subscriberId).toBeDefined();
     expect(Number.isNaN(subscriberId)).toEqual(false);
 
     await pubsub.publish('testx.test', { test: 'data' });
     const message = await messagePromise;
 
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
+    expect(message).toBeDefined();
     expect(message.test).toEqual('data');
   });
 
@@ -89,27 +85,20 @@ describe('AMQP PubSub', () => {
     const subscriberId = await pubsub.subscribe('testheader.*', (content, message) => {
       emitter.emit('message', { content, message });
     });
-    expect(subscriberId).not.toBeNull();
-    expect(subscriberId).not.toBeUndefined();
+    expect(subscriberId).toBeDefined();
     expect(Number.isNaN(subscriberId)).toEqual(false);
 
     await pubsub.publish('testheader.test', { test: 'data' }, { contentType: 'file', headers: { key: 'value' } });
     const { content: message, message: rawMessage } = await messagePromise;
 
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
+    expect(message).toBeDefined();
     expect(message.test).toEqual('data');
-    expect(rawMessage).not.toBeNull();
-    expect(rawMessage).not.toBeUndefined();
-    expect(rawMessage.properties).not.toBeNull();
-    expect(rawMessage.properties).not.toBeUndefined();
-    expect(rawMessage.properties.contentType).not.toBeNull();
-    expect(rawMessage.properties.contentType).not.toBeUndefined();
+    expect(rawMessage).toBeDefined();
+    expect(rawMessage.properties).toBeDefined();
+    expect(rawMessage.properties.contentType).toBeDefined();
     expect(rawMessage.properties.contentType).toEqual('file');
-    expect(rawMessage.properties.headers).not.toBeNull();
-    expect(rawMessage.properties.headers).not.toBeUndefined();
-    expect(rawMessage.properties.headers.key).not.toBeNull();
-    expect(rawMessage.properties.headers.key).not.toBeUndefined();
+    expect(rawMessage.properties.headers).toBeDefined();
+    expect(rawMessage.properties.headers.key).toBeDefined();
     expect(rawMessage.properties.headers.key).toEqual('value');
   });
 
@@ -123,8 +112,7 @@ describe('AMQP PubSub', () => {
       emitter.emit('error', new Error('Should not reach'));
     });
 
-    expect(subscriberId).not.toBeNull();
-    expect(subscriberId).not.toBeUndefined();
+    expect(subscriberId).toBeDefined();
     expect(Number.isNaN(subscriberId)).toEqual(false);
 
     return Promise.race([
@@ -146,15 +134,13 @@ describe('AMQP PubSub', () => {
     const id1 = await pubsub.subscribe('testy.test', () => {
       emitter.emit('error', new Error('Should not reach'));
     });
-    expect(id1).not.toBeNull();
-    expect(id1).not.toBeUndefined();
+    expect(id1).toBeDefined();
 
     const id2 = await pubsub.subscribe('testy.test', (message) => {
       emitter.emit('message', message);
     });
 
-    expect(id2).not.toBeNull();
-    expect(id2).not.toBeUndefined();
+    expect(id2).toBeDefined();
     expect(id1).not.toEqual(id2);
 
     // Unsubscribe one
@@ -167,8 +153,7 @@ describe('AMQP PubSub', () => {
     ]);
 
     // Receive message
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
+    expect(message).toBeDefined();
     expect(message.test).toEqual('1335');
   });
 
@@ -191,10 +176,8 @@ describe('AMQP PubSub', () => {
       })
     ]);
 
-    expect(id1).not.toBeNull();
-    expect(id1).not.toBeUndefined();
-    expect(id2).not.toBeNull();
-    expect(id2).not.toBeUndefined();
+    expect(id1).toBeDefined();
+    expect(id2).toBeDefined();
     expect(id1).not.toEqual(id2);
 
     // Unsubscribe one
@@ -207,8 +190,7 @@ describe('AMQP PubSub', () => {
     ]);
 
     // Receive message
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
+    expect(message).toBeDefined();
     expect(message.test).toEqual('1336');
   });
 
@@ -223,8 +205,7 @@ describe('AMQP PubSub', () => {
       emitter.emit('error', new Error('Should not reach'));
     });
 
-    expect(id1).not.toBeNull();
-    expect(id1).not.toBeUndefined();
+    expect(id1).toBeDefined();
 
     const messagePromise = new Promise<TestData>((resolve) => {
       emitter.once('message', resolve);
@@ -238,8 +219,7 @@ describe('AMQP PubSub', () => {
       })
     ]);
 
-    expect(id2).not.toBeNull();
-    expect(id2).not.toBeUndefined();
+    expect(id2).toBeDefined();
     expect(id1).not.toEqual(id2);
 
     await pubsub.publish('testy.test', { test: '1337' });
@@ -249,8 +229,7 @@ describe('AMQP PubSub', () => {
     ]);
 
     // Receive message
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
+    expect(message).toBeDefined();
     expect(message.test).toEqual('1337');
   });
 });

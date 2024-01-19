@@ -31,15 +31,13 @@ describe('AMQP Publisher', () => {
   it('should create new instance of AMQPPublisher class with connection only', () => {
     const simplePublisher = new AMQPPublisher({ connection: config.connection }, logger);
 
-    expect(simplePublisher).not.toBeNull();
-    expect(simplePublisher).not.toBeUndefined();
+    expect(simplePublisher).toBeDefined();
   });
 
   it('should create new instance of AMQPPublisher class with config', () => {
     publisher = new AMQPPublisher(config, logger);
 
-    expect(publisher).not.toBeNull();
-    expect(publisher).not.toBeUndefined();
+    expect(publisher).toBeDefined();
   });
 
   // eslint-disable-next-line jest/expect-expect
