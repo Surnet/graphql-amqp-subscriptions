@@ -26,7 +26,7 @@
     "rabbit"
   ],
   "scripts": {
-    "start": "nodemon --ext js,ts,tsx,json --exec ts-node -- src/index.ts --extensions \".ts,.tsx\" --source-maps inline",
+    "start": "ts-node-dev src/index.ts",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "build": "rimraf lib && tsc --project tsconfig.build.json",
@@ -67,9 +67,9 @@
     "graphql": "16.8.1",
     "graphql-subscriptions": "2.0.0",
     "jest": "29.7.0",
-    "nodemon": "3.0.3",
     "rimraf": "5.0.5",
     "ts-node": "10.9.2",
+    "ts-node-dev": "2.0.0",
     "typescript": "5.3.3"
   }
 }
