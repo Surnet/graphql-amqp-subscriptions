@@ -1,4 +1,17 @@
 {
-  "extends": "./tsconfig.base.json",
-  "include": ["src", "test"]
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "strict": true,
+    "declaration": true,
+    "sourceMap": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "esModuleInterop": true,
+  },
+  "include": [
+    "src"
+  ]
 }
