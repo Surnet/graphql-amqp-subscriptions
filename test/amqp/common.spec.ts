@@ -31,8 +31,7 @@ describe('Common', () => {
       content: Buffer.from('test')
     });
 
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
+    expect(message).toBeDefined();
     expect(message).toEqual('test');
   });
 
@@ -64,8 +63,8 @@ describe('Common', () => {
       content: Buffer.from('{"test":"data"}')
     });
 
-    expect(message).not.toBeNull();
-    expect(message).not.toBeUndefined();
+    expect(message).toBeDefined();
+    expect(message).toHaveProperty('test');
     expect(message.test).toEqual('data');
   });
 });
