@@ -114,6 +114,8 @@
         "newlines-between": "always"
       }
     ],
-    "unicorn/no-null": "off"
+    "unicorn/no-null": "off",
+    "security/detect-object-injection": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }
