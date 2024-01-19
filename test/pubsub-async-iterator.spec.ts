@@ -192,7 +192,7 @@ describe('GraphQL-JS asyncIterator', () => {
       expect(returnSpy).toHaveBeenCalled();
     });
 
-    void pubSub.publish(FIRST_EVENT, {});
+    pubSub.publish(FIRST_EVENT, {});
 
     return r;
   });
