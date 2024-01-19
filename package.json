@@ -1,7 +1,7 @@
 {
   "name": "graphql-amqp-subscriptions",
   "description": "GraphQL AMQP Subscriptions",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "author": "https://github.com/Surnet/graphql-amqp-subscriptions/graphs/contributors",
   "license": "MIT",
   "homepage": "https://github.com/Surnet/graphql-amqp-subscriptions",
