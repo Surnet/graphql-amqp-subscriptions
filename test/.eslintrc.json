@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "sonarjs/no-duplicate-string": "off",
+    "unicorn/prefer-event-target": "off"
+  }
+}

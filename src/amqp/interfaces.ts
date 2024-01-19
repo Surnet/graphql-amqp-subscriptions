@@ -1,4 +1,4 @@
-import {Options, Connection} from 'amqplib';
+import { Options, Connection } from 'amqplib';
 
 export interface Exchange {
   name: string;

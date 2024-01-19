@@ -1,9 +1,9 @@
+import { beforeAll, afterAll, expect } from '@jest/globals';
 import amqp from 'amqplib';
 import Debug from 'debug';
-import { beforeAll, afterAll, expect } from '@jest/globals';
 
-import { AMQPPublisher } from '../../src/amqp/publisher';
 import { PubSubAMQPConfig } from '../../src/amqp/interfaces';
+import { AMQPPublisher } from '../../src/amqp/publisher';
 
 describe('AMQP Publisher', () => {
   const logger = Debug('AMQPPubSub');
@@ -42,16 +42,19 @@ describe('AMQP Publisher', () => {
     expect(publisher).not.toBeUndefined();
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('should publish a message to an exchange', async () => {
-    return publisher.publish('test.test', {test: 'data'});
+    return publisher.publish('test.test', { test: 'data' });
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('should publish a second message to an exchange', async () => {
-    return publisher.publish('test.test', {test: 'data'});
+    return publisher.publish('test.test', { test: 'data' });
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('should publish a message to an exchange with options', async () => {
-    return publisher.publish('test.test', {test: 'data'}, {
+    return publisher.publish('test.test', { test: 'data' }, {
       contentType: 'file',
       headers: { key: 'value' }
     });

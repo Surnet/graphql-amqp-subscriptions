@@ -31,8 +31,8 @@ export class AMQPPublisher {
   private async getOrCreateChannel(): Promise<amqp.Channel> {
     if (!this.channel) {
       this.channel = await this.connection.createChannel();
-      this.channel.on('error', (err) => {
-        this.logger('Publisher channel error: "%j"', err);
+      this.channel.on('error', (error) => {
+        this.logger('Publisher channel error: "%j"', error);
       });
     }
     return this.channel;

@@ -1,8 +1,8 @@
-import amqp from 'amqplib';
 import { beforeAll, afterAll, expect } from '@jest/globals';
-import { isAsyncIterable } from 'iterall';
+import amqp from 'amqplib';
 import { parse, GraphQLSchema, GraphQLObjectType, GraphQLString, ExecutionResult, subscribe } from 'graphql';
 import { withFilter, FilterFn } from 'graphql-subscriptions';
+import { isAsyncIterable } from 'iterall';
 
 import { AMQPPubSub } from '../src';
 import { PubSubAMQPConfig } from '../src/amqp/interfaces';
@@ -16,13 +16,13 @@ async function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       setTimeout(resolve, milliseconds);
-    } catch (err) {
-      reject(err);
+    } catch (error) {
+      reject(error);
     }
   });
 }
 
-function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
+function buildSchema(iterator: any, filterFunction: FilterFn = defaultFilter) {
   return new GraphQLSchema({
     query: new GraphQLObjectType({
       name: 'Query',
@@ -40,7 +40,7 @@ function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
       fields: {
         testSubscription: {
           type: GraphQLString,
-          subscribe: withFilter(() => iterator, filterFn),
+          subscribe: withFilter(() => iterator, filterFunction),
           resolve: () => {
             return 'FIRST_EVENT';
           }
@@ -92,8 +92,8 @@ describe('GraphQL-JS asyncIterator', () => {
 
     expect(isAsyncIterable(results)).toBe(true);
 
-    const r = payload1.then(res => {
-      expect(res.value.data!.testSubscription).toEqual('FIRST_EVENT');
+    const r = payload1.then(response => {
+      expect(response.value.data!.testSubscription).toEqual('FIRST_EVENT');
     });
 
     setTimeout(() => {
@@ -118,8 +118,8 @@ describe('GraphQL-JS asyncIterator', () => {
 
     expect(isAsyncIterable(results)).toBe(true);
 
-    const r = payload1.then(res => {
-      expect(res.value.data!.testSubscription).toEqual('FIRST_EVENT');
+    const r = payload1.then(response => {
+      expect(response.value.data!.testSubscription).toEqual('FIRST_EVENT');
     });
 
     setTimeout(() => {
@@ -129,6 +129,7 @@ describe('GraphQL-JS asyncIterator', () => {
     return r;
   });
 
+  // eslint-disable-next-line jest/no-done-callback
   it('should detect when the payload is done when filtering', (done) => {
     const document = parse(`
       subscription S1 {
@@ -141,19 +142,19 @@ describe('GraphQL-JS asyncIterator', () => {
 
     let counter = 0;
 
-    const filterFn = () => {
+    const filterFunction = () => {
       counter++;
 
       if (counter > 10) {
-        const e = new Error('Infinite loop detected');
-        done(e);
-        throw e;
+        const error = new Error('Infinite loop detected');
+        done(error);
+        throw error;
       }
 
       return false;
     };
 
-    const schema = buildSchema(origIterator, filterFn);
+    const schema = buildSchema(origIterator, filterFunction);
 
     Promise.resolve(subscribe({ document, schema })).then((results: AsyncIterator<ExecutionResult> | ExecutionResult) => {
       expect(isAsyncIterable(results)).toBe(true);
