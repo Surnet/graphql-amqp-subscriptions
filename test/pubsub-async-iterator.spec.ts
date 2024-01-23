@@ -1,29 +1,11 @@
-// chai style expect().to.be.true  violates no-unused-expression
-/* tslint:disable:no-unused-expression */
-import chai from 'chai';
-import chaiAsPromised from 'chai-as-promised';
-import { spy } from 'sinon';
-import sinonChai from 'sinon-chai';
-
-import { isAsyncIterable } from 'iterall';
-import { AMQPPubSub as PubSub } from './pubsub';
-import { withFilter, FilterFn } from 'graphql-subscriptions';
-import { ExecutionResult } from 'graphql';
-import { PubSubAMQPConfig } from './amqp/interfaces';
+import { beforeAll, afterAll, expect } from '@jest/globals';
 import amqp from 'amqplib';
+import { parse, GraphQLSchema, GraphQLObjectType, GraphQLString, ExecutionResult, subscribe } from 'graphql';
+import { withFilter, FilterFn } from 'graphql-subscriptions';
+import { isAsyncIterable } from 'iterall';
 
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
-const expect = chai.expect;
-
-import {
-  parse,
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLString
-} from 'graphql';
-
-import { subscribe } from 'graphql/subscription';
+import { AMQPPubSub } from '../src';
+import { PubSubAMQPConfig } from '../src/amqp/interfaces';
 
 const FIRST_EVENT = 'FIRST_EVENT';
 
@@ -34,13 +16,13 @@ async function sleep(milliseconds: number): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
       setTimeout(resolve, milliseconds);
-    } catch (err) {
-      reject(err);
+    } catch (error) {
+      reject(error);
     }
   });
 }
 
-function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
+function buildSchema(iterator: any, filterFunction: FilterFn = defaultFilter) {
   return new GraphQLSchema({
     query: new GraphQLObjectType({
       name: 'Query',
@@ -58,7 +40,7 @@ function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
       fields: {
         testSubscription: {
           type: GraphQLString,
-          subscribe: withFilter(() => iterator, filterFn),
+          subscribe: withFilter(() => iterator, filterFunction),
           resolve: () => {
             return 'FIRST_EVENT';
           }
@@ -69,8 +51,7 @@ function buildSchema(iterator: any, filterFn: FilterFn = defaultFilter) {
 }
 
 describe('GraphQL-JS asyncIterator', () => {
-
-  before(async () => {
+  beforeAll(async () => {
     config = {
       connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
       exchange: {
@@ -91,28 +72,28 @@ describe('GraphQL-JS asyncIterator', () => {
     };
   });
 
-  after(async () => {
+  afterAll(async () => {
     await sleep(100);
     return config.connection.close();
   });
 
   it('should allow subscriptions', async () => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
     `);
-    const pubsub = new PubSub(config);
+    const pubsub = new AMQPPubSub(config);
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator);
 
-    const results = await subscribe(schema, query) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
     const payload1 = results.next();
 
-    expect(isAsyncIterable(results)).to.be.true;
+    expect(isAsyncIterable(results)).toBe(true);
 
-    const r = payload1.then(res => {
-      expect(res.value.data!.testSubscription).to.equal('FIRST_EVENT');
+    const r = payload1.then(response => {
+      expect(response.value.data!.testSubscription).toEqual('FIRST_EVENT');
     });
 
     setTimeout(() => {
@@ -123,22 +104,22 @@ describe('GraphQL-JS asyncIterator', () => {
   });
 
   it('should allow async filter', async () => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
     `);
-    const pubsub = new PubSub(config);
+    const pubsub = new AMQPPubSub(config);
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator, () => Promise.resolve(true));
 
-    const results = await subscribe(schema, query) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
     const payload1 = results.next();
 
-    expect(isAsyncIterable(results)).to.be.true;
+    expect(isAsyncIterable(results)).toBe(true);
 
-    const r = payload1.then(res => {
-      expect(res.value.data!.testSubscription).to.equal('FIRST_EVENT');
+    const r = payload1.then(response => {
+      expect(response.value.data!.testSubscription).toEqual('FIRST_EVENT');
     });
 
     setTimeout(() => {
@@ -148,34 +129,35 @@ describe('GraphQL-JS asyncIterator', () => {
     return r;
   });
 
+  // eslint-disable-next-line jest/no-done-callback
   it('should detect when the payload is done when filtering', (done) => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
     `);
 
-    const pubsub = new PubSub(config);
+    const pubsub = new AMQPPubSub(config);
     const origIterator = pubsub.asyncIterator(FIRST_EVENT);
 
     let counter = 0;
 
-    const filterFn = () => {
+    const filterFunction = () => {
       counter++;
 
       if (counter > 10) {
-        const e = new Error('Infinite loop detected');
-        done(e);
-        throw e;
+        const error = new Error('Infinite loop detected');
+        done(error);
+        throw error;
       }
 
       return false;
     };
 
-    const schema = buildSchema(origIterator, filterFn);
+    const schema = buildSchema(origIterator, filterFunction);
 
-    Promise.resolve(subscribe(schema, query)).then((results: AsyncIterator<ExecutionResult> | ExecutionResult) => {
-      expect(isAsyncIterable(results)).to.be.true;
+    Promise.resolve(subscribe({ document, schema })).then((results: AsyncIterator<ExecutionResult> | ExecutionResult) => {
+      expect(isAsyncIterable(results)).toBe(true);
       results = <AsyncIterator<ExecutionResult>>results;
 
       results.next();
@@ -185,34 +167,33 @@ describe('GraphQL-JS asyncIterator', () => {
         pubsub.publish(FIRST_EVENT, {});
       }, 100);
 
-      setTimeout(_ => {
+      setTimeout(() => {
         done();
       }, 500);
     });
   });
 
   it('should clear event handlers', async () => {
-    const query = parse(`
+    const document = parse(`
       subscription S1 {
         testSubscription
       }
     `);
 
-    const pubsub = new PubSub(config);
-    const origIterator = pubsub.asyncIterator(FIRST_EVENT);
-    const returnSpy = spy(origIterator, 'return');
+    const pubSub = new AMQPPubSub(config);
+    const origIterator = pubSub.asyncIterator(FIRST_EVENT);
+    const returnSpy = jest.spyOn(origIterator, 'return');
     const schema = buildSchema(origIterator);
 
-    const results = await subscribe(schema, query) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
     const end = results.return!();
 
     const r = end.then(() => {
-      expect(returnSpy).to.have.been.called;
+      expect(returnSpy).toHaveBeenCalled();
     });
 
-    pubsub.publish(FIRST_EVENT, {});
+    pubSub.publish(FIRST_EVENT, {});
 
     return r;
   });
-
 });

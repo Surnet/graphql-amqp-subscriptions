@@ -1,17 +1,16 @@
 import amqp from 'amqplib';
 
 export class Common {
-
-    public static convertMessage(msg: amqp.ConsumeMessage | null): any {
-      let res: any = null;
-      if (msg) {
-        try {
-          res = JSON.parse(msg.content.toString());
-        } catch (e) {
-          res = msg.content.toString();
-        }
+  public static convertMessage(message: amqp.ConsumeMessage | null): any {
+    let response: any = null;
+    if (message) {
+      try {
+        response = JSON.parse(message.content.toString());
+      } catch {
+        response = message.content.toString();
       }
-      return res;
     }
 
+    return response;
+  }
 }

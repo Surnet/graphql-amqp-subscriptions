@@ -1,10 +1,11 @@
+import { type PubSubEngine } from 'graphql-subscriptions';
 import { $$asyncIterator } from 'iterall';
-import { PubSubEngine } from 'graphql-subscriptions';
 
 /**
  * A class for digesting PubSubEngine events via the new AsyncIterator interface.
  * This implementation is a generic version of the one located at
  * https://github.com/apollographql/graphql-subscriptions/blob/master/src/event-emitter-to-async-iterator.ts
+ *
  * @class
  *
  * @constructor
@@ -31,8 +32,7 @@ import { PubSubEngine } from 'graphql-subscriptions';
  * The PubSubEngine whose events will be observed.
  */
 export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
-
-  private pullQueue: Function[];
+  private pullQueue: Array<(...data: any[]) => any>;
   private pushQueue: any[];
   private eventsArray: string[];
   private allSubscribed: Promise<number[]>;
@@ -58,9 +58,10 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
     return { value: undefined, done: true };
   }
 
-  public async throw(err: any) {
+  public async throw(error: any) {
     this.emptyQueue(await this.allSubscribed);
-    return Promise.reject(err);
+    // eslint-disable-next-line unicorn/no-useless-promise-resolve-reject
+    return Promise.reject(error);
   }
 
   public [$$asyncIterator]() {
@@ -69,8 +70,8 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
 
   private async pushValue(event: any) {
     await this.allSubscribed;
-    if (this.pullQueue.length !== 0) {
-      let element = this.pullQueue.shift();
+    if (this.pullQueue.length > 0) {
+      const element = this.pullQueue.shift();
       if (element) {
         element({ value: event, done: false });
       }
@@ -81,7 +82,7 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
 
   private pullValue(): Promise<IteratorResult<any>> {
     return new Promise(resolve => {
-      if (this.pushQueue.length !== 0) {
+      if (this.pushQueue.length > 0) {
         resolve({ value: this.pushQueue.shift(), done: false });
       } else {
         this.pullQueue.push(resolve);
@@ -93,7 +94,9 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
     if (this.listening) {
       this.listening = false;
       this.unsubscribeAll(subscriptionIds);
-      this.pullQueue.forEach(resolve => resolve({ value: undefined, done: true }));
+      for (const resolve of this.pullQueue) {
+        resolve({ value: undefined, done: true });
+      }
       this.pullQueue.length = 0;
       this.pushQueue.length = 0;
     }
@@ -110,5 +113,4 @@ export class PubSubAsyncIterator<T> implements AsyncIterator<T> {
       this.pubsub.unsubscribe(subscriptionId);
     }
   }
-
 }

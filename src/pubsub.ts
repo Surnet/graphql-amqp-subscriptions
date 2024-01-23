@@ -1,11 +1,11 @@
-import { PubSubEngine } from 'graphql-subscriptions';
-import amqp from 'amqplib';
+import amqp, { ConsumeMessage } from 'amqplib';
 import Debug from 'debug';
+import { type PubSubEngine } from 'graphql-subscriptions';
 import { v4 as uuidv4 } from 'uuid';
 
+import { Exchange, PubSubAMQPConfig } from './amqp/interfaces';
 import { AMQPPublisher } from './amqp/publisher';
 import { AMQPSubscriber } from './amqp/subscriber';
-import { Exchange, PubSubAMQPConfig } from './amqp/interfaces';
 import { PubSubAsyncIterator } from './pubsub-async-iterator';
 
 const logger = Debug('AMQPPubSub');
@@ -15,14 +15,12 @@ export class AMQPPubSub implements PubSubEngine {
   private subscriber: AMQPSubscriber;
   private exchange: Exchange;
 
-  private subscriptionMap: { [subId: number]: { routingKey: string, listener: Function } };
+  private subscriptionMap: { [subId: number]: { routingKey: string; listener: (content: any, message: ConsumeMessage | null) => any } };
   private subsRefsMap: { [trigger: string]: Array<number> };
   private unsubscribeMap: { [trigger: string]: () => PromiseLike<any> };
   private currentSubscriptionId: number;
 
-  constructor(
-    config: PubSubAMQPConfig
-  ) {
+  constructor(config: PubSubAMQPConfig) {
     this.subscriptionMap = {};
     this.subsRefsMap = {};
     this.unsubscribeMap = {};
@@ -53,7 +51,7 @@ export class AMQPPubSub implements PubSubEngine {
   public async subscribe(
     routingKey: string | 'fanout',
     onMessage: (content: any, message?: amqp.ConsumeMessage | null) => void,
-    args?: any,
+    arguments_?: any,
     options?: amqp.Options.Consume
   ): Promise<number> {
     const id = this.currentSubscriptionId++;
@@ -64,14 +62,14 @@ export class AMQPPubSub implements PubSubEngine {
     logger('Subscribing to "%s" with id: "%s"', routingKey, id);
 
     this.subscriptionMap[id] = {
-      routingKey: routingKey,
+      routingKey,
       listener: onMessage
     };
 
-    const refs = this.subsRefsMap[routingKey];
-    if (refs && refs.length > 0) {
-      const newRefs = [...refs, id];
-      this.subsRefsMap[routingKey] = newRefs;
+    const references = this.subsRefsMap[routingKey];
+    if (references && references.length > 0) {
+      const newReferences = [...references, id];
+      this.subsRefsMap[routingKey] = newReferences;
       return id;
     }
 
@@ -83,7 +81,7 @@ export class AMQPPubSub implements PubSubEngine {
     const existingDispose = this.unsubscribeMap[routingKey];
     // Get rid of exisiting subscription while we get a new one.
     const [newDispose] = await Promise.all([
-      this.subscriber.subscribe(routingKey, this.onMessage, args, options),
+      this.subscriber.subscribe(routingKey, this.onMessage, arguments_, options),
       existingDispose ? existingDispose() : Promise.resolve()
     ]);
 
@@ -98,23 +96,23 @@ export class AMQPPubSub implements PubSubEngine {
     }
     const { routingKey } = sub;
 
-    const refs = this.subsRefsMap[routingKey];
-    if (!refs) {
+    const references = this.subsRefsMap[routingKey];
+    if (!references) {
       throw new Error(`There is no subscription ref for routing key "${routingKey}", id "${subId}"`);
     }
     logger('Unsubscribing from "%s" with id: "%s"', routingKey, subId);
 
-    if (refs.length === 1) {
+    if (references.length === 1) {
       delete this.subscriptionMap[subId];
       return this.unsubscribeForKey(routingKey);
     }
 
-    const index = refs.indexOf(subId);
-    const newRefs =
+    const index = references.indexOf(subId);
+    const newReferences =
       index === -1
-        ? refs
-        : [...refs.slice(0, index), ...refs.slice(index + 1)];
-    this.subsRefsMap[routingKey] = newRefs;
+        ? references
+        : [...references.slice(0, index), ...references.slice(index + 1)];
+    this.subsRefsMap[routingKey] = newReferences;
     delete this.subscriptionMap[subId];
   }
 
@@ -126,10 +124,9 @@ export class AMQPPubSub implements PubSubEngine {
     const subscribers = this.subsRefsMap[routingKey];
 
     // Don't work for nothing...
-    if (!subscribers || !subscribers.length) {
-      this.unsubscribeForKey(routingKey)
-      .catch((err) => {
-        logger('onMessage unsubscribeForKey error "%j", Routing Key "%s"', err, routingKey);
+    if (!subscribers || subscribers.length === 0) {
+      this.unsubscribeForKey(routingKey).catch((error) => {
+        logger('onMessage unsubscribeForKey error "%j", Routing Key "%s"', error, routingKey);
       });
       return;
     }
@@ -137,7 +134,7 @@ export class AMQPPubSub implements PubSubEngine {
     for (const subId of subscribers) {
       this.subscriptionMap[subId].listener(content, message);
     }
-  }
+  };
 
   private async unsubscribeForKey(routingKey: string): Promise<void> {
     const dispose = this.unsubscribeMap[routingKey];
@@ -145,5 +142,4 @@ export class AMQPPubSub implements PubSubEngine {
     delete this.subsRefsMap[routingKey];
     await dispose();
   }
-
 }

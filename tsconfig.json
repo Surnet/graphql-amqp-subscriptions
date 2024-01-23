@@ -1,5 +1,17 @@
 {
-  "extends": "./base.tsconfig",
-  "include": ["src/**/*.ts"],
-  "exclude": ["test", "src/**/*.test.ts"]
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "strict": true,
+    "declaration": true,
+    "sourceMap": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "esModuleInterop": true,
+  },
+  "include": [
+    "src"
+  ]
 }

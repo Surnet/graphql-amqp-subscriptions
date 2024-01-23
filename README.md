@@ -7,8 +7,6 @@ This package is influenced by [graphql-redis-subscriptions](https://github.com/d
 
 [![npm Version](https://img.shields.io/npm/v/graphql-amqp-subscriptions.svg)](https://www.npmjs.com/package/graphql-amqp-subscriptions)
 [![npm Downloads](https://img.shields.io/npm/dm/graphql-amqp-subscriptions.svg)](https://www.npmjs.com/package/graphql-amqp-subscriptions)
-[![CircleCI](https://circleci.com/gh/Surnet/graphql-amqp-subscriptions.svg?style=svg)](https://circleci.com/gh/Surnet/graphql-amqp-subscriptions)
-[![Known Vulnerabilities](https://snyk.io/test/github/Surnet/graphql-amqp-subscriptions/badge.svg)](https://snyk.io/test/github/Surnet/graphql-amqp-subscriptions)
 
 ## Basic usage
 

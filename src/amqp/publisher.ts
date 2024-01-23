@@ -8,10 +8,7 @@ export class AMQPPublisher {
   private exchange: Exchange;
   private channel: amqp.Channel | null = null;
 
-  constructor(
-    config: PubSubAMQPConfig,
-    private logger: Debug.IDebugger
-  ) {
+  constructor(config: PubSubAMQPConfig, private logger: Debug.IDebugger) {
     this.connection = config.connection;
     this.exchange = {
       name: 'graphql_subscriptions',
@@ -34,7 +31,9 @@ export class AMQPPublisher {
   private async getOrCreateChannel(): Promise<amqp.Channel> {
     if (!this.channel) {
       this.channel = await this.connection.createChannel();
-      this.channel.on('error', (err) => { this.logger('Publisher channel error: "%j"', err); });
+      this.channel.on('error', (error) => {
+        this.logger('Publisher channel error: "%j"', error);
+      });
     }
     return this.channel;
   }

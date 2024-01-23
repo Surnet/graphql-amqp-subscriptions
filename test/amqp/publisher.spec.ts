@@ -1,19 +1,16 @@
-/* tslint:disable:no-unused-expression */
-import { AMQPPublisher } from './publisher';
-import { PubSubAMQPConfig } from './interfaces';
-import { expect } from 'chai';
-import 'mocha';
-import Debug from 'debug';
+import { beforeAll, afterAll, expect } from '@jest/globals';
 import amqp from 'amqplib';
+import Debug from 'debug';
 
-const logger = Debug('AMQPPubSub');
-
-let publisher: AMQPPublisher;
-let config: PubSubAMQPConfig;
+import { PubSubAMQPConfig } from '../../src/amqp/interfaces';
+import { AMQPPublisher } from '../../src/amqp/publisher';
 
 describe('AMQP Publisher', () => {
+  const logger = Debug('AMQPPubSub');
+  let publisher: AMQPPublisher;
+  let config: PubSubAMQPConfig;
 
-  before(async () => {
+  beforeAll(async () => {
     config = {
       connection: await amqp.connect('amqp://guest:guest@localhost:5672?heartbeat=30'),
       exchange: {
@@ -27,33 +24,37 @@ describe('AMQP Publisher', () => {
     };
   });
 
-  after(async () => {
+  afterAll(async () => {
     return config.connection.close();
   });
 
   it('should create new instance of AMQPPublisher class with connection only', () => {
     const simplePublisher = new AMQPPublisher({ connection: config.connection }, logger);
-    expect(simplePublisher).to.exist;
+
+    expect(simplePublisher).toBeDefined();
   });
 
   it('should create new instance of AMQPPublisher class with config', () => {
     publisher = new AMQPPublisher(config, logger);
-    expect(publisher).to.exist;
+
+    expect(publisher).toBeDefined();
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('should publish a message to an exchange', async () => {
-    return publisher.publish('test.test', {test: 'data'});
+    return publisher.publish('test.test', { test: 'data' });
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('should publish a second message to an exchange', async () => {
-    return publisher.publish('test.test', {test: 'data'});
+    return publisher.publish('test.test', { test: 'data' });
   });
 
+  // eslint-disable-next-line jest/expect-expect
   it('should publish a message to an exchange with options', async () => {
-    return publisher.publish('test.test', {test: 'data'}, {
+    return publisher.publish('test.test', { test: 'data' }, {
       contentType: 'file',
       headers: { key: 'value' }
     });
   });
-
 });
