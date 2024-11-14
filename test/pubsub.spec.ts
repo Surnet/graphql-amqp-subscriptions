@@ -98,8 +98,8 @@ describe('AMQP PubSub', () => {
     expect(rawMessage.properties.contentType).toBeDefined();
     expect(rawMessage.properties.contentType).toEqual('file');
     expect(rawMessage.properties.headers).toBeDefined();
-    expect(rawMessage.properties.headers.key).toBeDefined();
-    expect(rawMessage.properties.headers.key).toEqual('value');
+    expect(rawMessage.properties.headers?.key).toBeDefined();
+    expect(rawMessage.properties.headers?.key).toEqual('value');
   });
 
   it('should be able to unsubscribe', async () => {
