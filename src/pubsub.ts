@@ -1,12 +1,12 @@
 import amqp, { ConsumeMessage } from 'amqplib';
 import Debug from 'debug';
 import { type PubSubEngine } from 'graphql-subscriptions';
+import { PubSubAsyncIterableIterator } from 'graphql-subscriptions/dist/pubsub-async-iterable-iterator';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Exchange, PubSubAMQPConfig } from './amqp/interfaces';
 import { AMQPPublisher } from './amqp/publisher';
 import { AMQPSubscriber } from './amqp/subscriber';
-import { PubSubAsyncIterator } from './pubsub-async-iterator';
 
 const logger = Debug('AMQPPubSub');
 
@@ -49,7 +49,7 @@ export class AMQPPubSub implements PubSubEngine {
   }
 
   public async subscribe(
-    routingKey: string | 'fanout',
+    routingKey: string,
     onMessage: (content: any, message?: amqp.ConsumeMessage | null) => void,
     arguments_?: any,
     options?: amqp.Options.Consume
@@ -116,8 +116,8 @@ export class AMQPPubSub implements PubSubEngine {
     delete this.subscriptionMap[subId];
   }
 
-  public asyncIterator<T>(triggers: string | string[]): AsyncIterator<T> {
-    return new PubSubAsyncIterator<T>(this, triggers);
+  public asyncIterableIterator<T>(triggers: string | string[]): PubSubAsyncIterableIterator<T> {
+    return new PubSubAsyncIterableIterator<T>(this, triggers);
   }
 
   private onMessage = (routingKey: string, content: any, message: amqp.ConsumeMessage | null): void => {

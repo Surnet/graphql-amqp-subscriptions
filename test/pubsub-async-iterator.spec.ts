@@ -2,7 +2,6 @@ import { beforeAll, afterAll, expect } from '@jest/globals';
 import amqp from 'amqplib';
 import { parse, GraphQLSchema, GraphQLObjectType, GraphQLString, ExecutionResult, subscribe } from 'graphql';
 import { withFilter, FilterFn } from 'graphql-subscriptions';
-import { isAsyncIterable } from 'iterall';
 
 import { AMQPPubSub } from '../src';
 import { PubSubAMQPConfig } from '../src/amqp/interfaces';
@@ -21,6 +20,10 @@ async function sleep(milliseconds: number): Promise<void> {
     }
   });
 }
+
+const isAsyncIterableIterator = (input: unknown): input is AsyncIterableIterator<unknown> => {
+  return input != null && typeof (input as any)[Symbol.asyncIterator] === 'function';
+};
 
 function buildSchema(iterator: any, filterFunction: FilterFn = defaultFilter) {
   return new GraphQLSchema({
@@ -84,13 +87,13 @@ describe('GraphQL-JS asyncIterator', () => {
       }
     `);
     const pubsub = new AMQPPubSub(config);
-    const origIterator = pubsub.asyncIterator(FIRST_EVENT);
+    const origIterator = pubsub.asyncIterableIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator);
 
-    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterableIterator<ExecutionResult>;
     const payload1 = results.next();
 
-    expect(isAsyncIterable(results)).toBe(true);
+    expect(isAsyncIterableIterator(results)).toBe(true);
 
     const r = payload1.then(response => {
       expect(response.value.data!.testSubscription).toEqual('FIRST_EVENT');
@@ -110,13 +113,13 @@ describe('GraphQL-JS asyncIterator', () => {
       }
     `);
     const pubsub = new AMQPPubSub(config);
-    const origIterator = pubsub.asyncIterator(FIRST_EVENT);
+    const origIterator = pubsub.asyncIterableIterator(FIRST_EVENT);
     const schema = buildSchema(origIterator, () => Promise.resolve(true));
 
-    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterableIterator<ExecutionResult>;
     const payload1 = results.next();
 
-    expect(isAsyncIterable(results)).toBe(true);
+    expect(isAsyncIterableIterator(results)).toBe(true);
 
     const r = payload1.then(response => {
       expect(response.value.data!.testSubscription).toEqual('FIRST_EVENT');
@@ -138,7 +141,7 @@ describe('GraphQL-JS asyncIterator', () => {
     `);
 
     const pubsub = new AMQPPubSub(config);
-    const origIterator = pubsub.asyncIterator(FIRST_EVENT);
+    const origIterator = pubsub.asyncIterableIterator(FIRST_EVENT);
 
     let counter = 0;
 
@@ -156,9 +159,9 @@ describe('GraphQL-JS asyncIterator', () => {
 
     const schema = buildSchema(origIterator, filterFunction);
 
-    Promise.resolve(subscribe({ document, schema })).then((results: AsyncIterator<ExecutionResult> | ExecutionResult) => {
-      expect(isAsyncIterable(results)).toBe(true);
-      results = <AsyncIterator<ExecutionResult>>results;
+    Promise.resolve(subscribe({ document, schema })).then((results: AsyncIterableIterator<ExecutionResult> | ExecutionResult) => {
+      expect(isAsyncIterableIterator(results)).toBe(true);
+      results = <AsyncIterableIterator<ExecutionResult>>results;
 
       results.next();
       results.return!();
@@ -181,11 +184,11 @@ describe('GraphQL-JS asyncIterator', () => {
     `);
 
     const pubSub = new AMQPPubSub(config);
-    const origIterator = pubSub.asyncIterator(FIRST_EVENT);
+    const origIterator = pubSub.asyncIterableIterator(FIRST_EVENT);
     const returnSpy = jest.spyOn(origIterator, 'return');
     const schema = buildSchema(origIterator);
 
-    const results = await subscribe({ document, schema }) as AsyncIterator<ExecutionResult>;
+    const results = await subscribe({ document, schema }) as AsyncIterableIterator<ExecutionResult>;
     const end = results.return!();
 
     const r = end.then(() => {
