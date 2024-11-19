@@ -40,7 +40,7 @@ export class AMQPSubscriber {
     // Create and bind queue
     const channel = await this.getOrCreateChannel();
     await channel.assertExchange(this.exchange.name, this.exchange.type, this.exchange.options);
-    const queue = await channel.assertQueue(this.queue.name || '', this.queue.options);
+    const queue = await channel.assertQueue(this.queue.name ?? '', this.queue.options);
     await channel.bindQueue(queue.queue, this.exchange.name, routingKey, arguments_);
 
     // Listen for messages
