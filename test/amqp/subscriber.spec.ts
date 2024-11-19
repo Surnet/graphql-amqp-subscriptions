@@ -116,8 +116,8 @@ describe('AMQP Subscriber', () => {
     expect(rawMessage.properties.contentType).toBeDefined();
     expect(rawMessage.properties.contentType).toEqual('file');
     expect(rawMessage.properties.headers).toBeDefined();
-    expect(rawMessage.properties.headers.key).toBeDefined();
-    expect(rawMessage.properties.headers.key).toEqual('value');
+    expect(rawMessage.properties.headers?.key).toBeDefined();
+    expect(rawMessage.properties.headers?.key).toEqual('value');
 
     return dispose();
   });
