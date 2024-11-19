@@ -8,6 +8,10 @@ This package is influenced by [graphql-redis-subscriptions](https://github.com/d
 [![npm Version](https://img.shields.io/npm/v/graphql-amqp-subscriptions.svg)](https://www.npmjs.com/package/graphql-amqp-subscriptions)
 [![npm Downloads](https://img.shields.io/npm/dm/graphql-amqp-subscriptions.svg)](https://www.npmjs.com/package/graphql-amqp-subscriptions)
 
+## graphql-subscriptions@2.x
+
+If you are using `graphql-subscriptions@2.x` please use `graphql-amqp-subscriptions@2`.
+
 ## Basic usage
 
 ```javascript
