@@ -8,7 +8,7 @@ export class AMQPSubscriber {
   private connection: amqp.Connection;
   private exchange: Exchange;
   private queue: Queue;
-  private channel: amqp.Channel | null = null;
+  private channelP: Promise<amqp.Channel> | null = null;
 
   constructor(config: PubSubAMQPConfig, private logger: Debug.IDebugger) {
     this.connection = config.connection;
@@ -66,12 +66,16 @@ export class AMQPSubscriber {
   }
 
   private async getOrCreateChannel(): Promise<amqp.Channel> {
-    if (!this.channel) {
-      this.channel = await this.connection.createChannel();
-      this.channel.on('error', (error) => {
-        this.logger('Subscriber channel error: "%j"', error);
+    if (!this.channelP) {
+      this.channelP = new Promise((resolve, reject) => {
+        this.connection.createChannel().then((channel) => {
+          channel.on('error', (error) => {
+            this.logger('Subscriber channel error: "%j"', error);
+          });
+          resolve(channel);
+        }).catch((error) => reject(error));
       });
     }
-    return this.channel;
+    return this.channelP;
   }
 }
