@@ -6,7 +6,7 @@ import { PubSubAMQPConfig, Exchange } from './interfaces';
 export class AMQPPublisher {
   private connection: amqp.Connection;
   private exchange: Exchange;
-  private channelP: Promise<amqp.Channel> | null = null;
+  private channelPromise: Promise<amqp.Channel> | null = null;
 
   constructor(config: PubSubAMQPConfig, private logger: Debug.IDebugger) {
     this.connection = config.connection;
@@ -29,16 +29,15 @@ export class AMQPPublisher {
   }
 
   private async getOrCreateChannel(): Promise<amqp.Channel> {
-    if (!this.channelP) {
-      this.channelP = new Promise((resolve, reject) => {
-        this.connection.createChannel().then((channel) => {
-          channel.on('error', (error) => {
-            this.logger('Publisher channel error: "%j"', error);
-          });
-          resolve(channel);
-        }).catch((error) => reject(error));
+    if (!this.channelPromise) {
+      this.channelPromise = this.connection.createChannel()
+      .then(channel => {
+        channel.on('error', (error) => {
+          this.logger('Publisher channel error: "%j"', error);
+        });
+        return channel;
       });
     }
-    return this.channelP;
+    return this.channelPromise;
   }
 }
